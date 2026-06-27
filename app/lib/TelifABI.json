@@ -1,0 +1,34 @@
+[
+  {
+    "inputs": [],
+    "name": "bolumNftSahibi",
+    "outputs": [{ "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "type": "address", "name": "" },
+      { "type": "uint256", "name": "" }
+    ],
+    "name": "bolumTamamlandi",
+    "outputs": [{ "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "type": "address", "name": "" }],
+    "name": "kullaniciSkoru",
+    "outputs": [{ "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "yapimciAdresi",
+    "outputs": [{ "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs":

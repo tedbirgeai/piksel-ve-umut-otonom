@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background-dark: #020617;
+  --text-main: #f8fafc;
+  --accent-blue: #38bdf8;
+  --accent-orange: #FF6B35;
+  --panel-bg: #0f172a;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background-dark);
+  color: var(--text-main);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+/* Dashboard artık ekranı tam kullanacak */
+.dashboard-container {
+  background-color: var(--panel-bg);
+  border: 1px solid #1e3a8a;
+  border-radius: 16px;
+  padding: 30px;
+  width: 100%; /* Eskiden 400px idi, şimdi tam genişlik */
+  max-width: 1200px; /* Dashboard için ideal genişlik */
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* Okunabilirliği artıran font ayarları */
+h1, h2 {
+  font-size: 2rem;
+  color: var(--accent-blue);
+  letter-spacing: -0.5px;
+}
+
+p {
+  font-size: 1.1rem;
+  color: #94a3b8;
+}
+
+/* Buton ve Inputları belirginleştir */
+button {
+  font-size: 1rem !important;
+  padding: 15px 25px !important;
+}
+
+input {
+  font-size: 1rem !important;
+  padding: 12px !important;
 }

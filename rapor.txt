@@ -1,0 +1,6 @@
+
+  <div className='mt-8 p-6 bg-slate-900 border border-slate-700 rounded-xl'>
+    <h2 className='text-xl font-bold mb-4 text-blue-400'>?? Daðýtým Raporu</h2>
+    <p className='text-slate-300'>Çekilebilir Telif: <span className='font-bold text-white'>0.00 ETH</span></p>
+    <button className='mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition-all'>Telifleri Çek (Min 0.01 ETH)</button>
+  </div>

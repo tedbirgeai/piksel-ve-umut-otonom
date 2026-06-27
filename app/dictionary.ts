@@ -1,0 +1,1 @@
+﻿export const dictionary = { tr: { title: 'Token Bakiyem', unit: 'PIKSEL' }, en: { title: 'My Balance', unit: 'PIKSEL' }, ja: { title: '残高', unit: 'PIKSEL' }, es: { title: 'Mi Saldo', unit: 'PIKSEL' }, zh: { title: '我的余额', unit: 'PIKSEL' } };
