@@ -22,10 +22,14 @@ export default function PanelPage() {
     <main className="mx-auto max-w-6xl px-7 py-12">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="eyebrow">// Kontrol Paneli</p>
+          <p className="eyebrow">// Çalışma Alanı</p>
           <h1 className="mt-2 text-[clamp(28px,4vw,40px)] font-bold text-forest">
-            Çalışma alanı
+            Otonom Eğitim Ekosistemi
           </h1>
+          <p className="mt-1 text-sm text-muted">
+            Yazın, konuşun ya da belge bırakın — içeriği üretin, kalıcılaştırın,
+            telifini alın.
+          </p>
         </div>
         <WalletButton />
       </div>

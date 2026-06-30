@@ -1,26 +1,34 @@
-﻿'use client';
-import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import '@rainbow-me/rainbowkit/styles.css';
+// app/providers.tsx
+"use client";
 
-const PROJECT_ID = '4340130aab7021004cff22c4774d0f35';
+import "@rainbow-me/rainbowkit/styles.css";
+import { useState } from "react";
+import { WagmiProvider } from "wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
+import { wagmiConfig } from "@/lib/wagmi";
+import { LibraryProvider } from "@/components/LibraryProvider";
 
-const config = getDefaultConfig({
-  appName: 'PikselVeUmut',
-  projectId: PROJECT_ID,
-  chains: [sepolia],
-  ssr: true,
-});
+/**
+ * Tüm istemci sağlayıcıları tek noktada:
+ * Wagmi (cüzdan) → React Query → RainbowKit (UI) → Library (içerik durumu).
+ */
+export default function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
 
-const queryClient = new QueryClient();
-
-export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>{children}</RainbowKitProvider>
+        <RainbowKitProvider
+          theme={lightTheme({
+            accentColor: "#0F3D3A",
+            accentColorForeground: "#FAF7F1",
+            borderRadius: "medium",
+            fontStack: "system",
+          })}
+        >
+          <LibraryProvider>{children}</LibraryProvider>
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

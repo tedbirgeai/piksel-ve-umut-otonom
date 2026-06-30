@@ -25,15 +25,19 @@ wagmi 2 / viem / RainbowKit 2 · TanStack Query.
 │  ├─ Footer.tsx
 │  ├─ WalletButton.tsx       # RainbowKit ConnectButton
 │  ├─ LibraryProvider.tsx    # Paylaşımlı içerik durumu (localStorage)
-│  ├─ ContentFactory.tsx     # Ollama üret → IPFS pinle (boru hattı)
+│  ├─ ContentFactory.tsx     # Multimodal: ses + belge + kademe → üret/pin/zincir
+│  ├─ AccessButton.tsx       # accessContent ile erişim satın alma
+│  ├─ ServiceWorkerRegister.tsx  # PWA service worker kaydı
 │  ├─ DigitalLibrary.tsx     # Pinlenmiş içerik kataloğu
 │  └─ RoyaltyPanel.tsx       # Sözleşmeden telif oku + çek
 ├─ lib/
 │  ├─ types.ts
-│  ├─ wagmi.ts               # Cüzdan yapılandırması
+│  ├─ wagmi.ts               # Cüzdan + Alchemy RPC transport
 │  ├─ contract.ts            # Telif sözleşmesi ABI + adres
+│  ├─ extract.ts             # PDF/DOCX/TXT istemci metin çıkarımı
 │  ├─ ollama.ts              # İstemci → /api/ollama
 │  └─ ipfs.ts                # Ağ geçidi + /api/ipfs
+├─ types/speech.d.ts         # Web Speech API tipleri
 ├─ package.json · tsconfig.json · next.config.ts
 ├─ postcss.config.mjs · eslint.config.mjs · tailwind.config.ts
 ├─ .env.example · .gitignore
@@ -56,12 +60,33 @@ RoyaltyPanel ──useReadContract()──▶ Telif sözleşmesi (wagmi/viem)
 ```bash
 # 1) Bu klasörün içeriğini proje köküne kopyalayın
 # 2) Ortam değişkenleri
-cp .env.example .env.local      # değerleri doldurun
+cp .env.example .env.local      # değerleri doldurun (aşağıya bakın)
 # 3) Bağımlılıklar
 npm install
 # 4) Geliştirme
 npm run dev                     # http://localhost:3000
 ```
+
+## .env.local — zorunlu anahtarlar (hata almamak için)
+| Değişken | Nereden | Not |
+|---|---|---|
+| `NEXT_PUBLIC_ALCHEMY_API_KEY` | dashboard.alchemy.com → App → API Key | **RPC hatasını çözer** — public rpc.sepolia.org yerine adanmış uç nokta. Tarayıcıya açıktır. |
+| `ALCHEMY_API_KEY` | aynı anahtar | Hardhat/deploy sunucu tarafı için |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | cloud.walletconnect.com | Cüzdan bağlama |
+| `NEXT_PUBLIC_ROYALTY_CONTRACT` | `npm run deploy:sepolia` çıktısı | Boşsa panel demo modunda |
+| `PRIVATE_KEY` | deploy cüzdanı | **Asla commit'lemeyin** |
+
+> Alchemy anahtarı girildiği an wagmi/viem tüm Sepolia çağrılarını bu adanmış
+> uç noktadan yapar; `rpc.sepolia.org` kaynaklı rate-limit/timeout hataları biter.
+
+## Çalışma Masası — multimodal girdi
+- **Sesli yazı:** Mikrofon düğmesi Web Speech API (`tr-TR`) ile konuşmanızı canlı
+  olarak konu istemine yazar. (Chrome/Edge; izin ister.)
+- **Belge işleme:** PDF/DOCX/TXT sürükle-bırak ya da tıkla-seç. Metin tamamen
+  **tarayıcıda** çıkarılır (`pdfjs-dist`, `mammoth`) — dosya sunucuya gitmez.
+- **Eğitim kademesi:** Kreş · İlkokul · Ortaokul · Lise · Üniversite · Akademik.
+  YZ, `app/api/ollama/route.ts` içindeki `LEVEL_GUIDE` ile pedagojik dili,
+  tonu ve derinliği seçilen kademeye göre otomatik ayarlar.
 
 ## Yerel servisler (opsiyonel ama tam işlev için gerekli)
 ```bash
@@ -124,4 +149,27 @@ npm run dev   # frontend artık gerçek sözleşmeyi okur
 
 `lib/contract.ts` içindeki ABI sözleşmeyle birebir eşleşir; adres `.env.local`'den
 gelir, tanımlı değilse panel demo değeriyle çalışır.
+
+---
+
+## PWA (çevrimdışı + yüklenebilir uygulama)
+
+```
+public/manifest.json              # Uygulama manifesti
+public/service-worker.js          # Çevrimdışı önbellek stratejisi
+public/icon-192.png · icon-512.png · icon-maskable-512.png · apple-touch-icon.png
+components/ServiceWorkerRegister.tsx   # SW kaydı (yalnızca production)
+```
+- `app/layout.tsx` manifest + ikon meta verilerini bağlar ve `<ServiceWorkerRegister />`
+  ile SW'yi kaydeder (geliştirmede devre dışı, HMR çakışmasını önlemek için).
+- SW; gezinmede network-first (çevrimdışı `/` yedeği), statikte cache-first çalışır;
+  `/api/*`, RPC, IPFS ve Ollama isteklerine dokunmaz.
+- Test: `npm run build && npm run start` → tarayıcıda "Yükle" simgesi görünür,
+  uçak modunda uygulama açılır.
+
+## Erişim satın alma akışı
+`components/AccessButton.tsx`, zincire kayıtlı her içerik için:
+`hasAccess` okur → yoksa `accessContent(contentId)` `{value: accessPrice}` çağırır →
+makbuzu bekler → "Erişiminiz var" durumuna geçer. Ücret zincirden (`contents`)
+okunur. `DigitalLibrary` kartlarına gömülüdür.
 
