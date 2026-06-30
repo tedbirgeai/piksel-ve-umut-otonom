@@ -1,7 +1,6 @@
 // components/Navbar.tsx
 import Link from "next/link";
 import PixelMark from "./PixelMark";
-import WalletButton from "./WalletButton";
 
 const LINKS = [
   { href: "/#marka", label: "Marka" },
@@ -35,7 +34,6 @@ export default function Navbar() {
               Panel
             </Link>
           </div>
-          <WalletButton />
         </nav>
       </div>
     </header>

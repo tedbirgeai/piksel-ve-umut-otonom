@@ -1,23 +1,38 @@
 // components/StudentView.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { STAGE_KEYS } from "@/lib/curriculum.config";
-import { useLibrary } from "./LibraryProvider";
+import { getPublishedLessons, fetchLessonBody } from "@/lib/catalog";
 import { useRole } from "./RoleProvider";
 import PixelMark from "./PixelMark";
 import type { Lesson } from "@/lib/types";
 
 /**
  * ÖĞRENCİ GÖRÜNÜMÜ — tamamen cüzdansız, çevrimdışı dostu.
- * Kademeye göre süzülen ders kütüphanesi + okuma görünümü.
- * Hiçbir blokzincir/cüzdan öğesi göstermez.
+ * Yayınlanmış dersleri MERKEZİYETSİZ katalogdan (zincir → IPFS, yoksa yerel)
+ * okur. Hiçbir blokzincir/cüzdan öğesi göstermez.
  */
 export default function StudentView() {
-  const { lessons } = useLibrary();
   const { clearRole } = useRole();
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState<string>("Hepsi");
   const [open, setOpen] = useState<Lesson | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    getPublishedLessons()
+      .then((ls) => {
+        if (alive) setLessons(ls);
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     if (stage === "Hepsi") return lessons;
@@ -27,7 +42,6 @@ export default function StudentView() {
   if (open) {
     return <Reader lesson={open} onBack={() => setOpen(null)} />;
   }
-
   return (
     <div className="min-h-[calc(100vh-58px)] bg-paper dark:bg-[#0C1614]">
       <div className="mx-auto max-w-5xl px-6 py-9">
@@ -66,7 +80,14 @@ export default function StudentView() {
         </div>
 
         {/* kütüphane */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="mt-16 flex flex-col items-center text-center">
+            <div className="animate-pulse">
+              <PixelMark size={52} gap={4} />
+            </div>
+            <p className="mt-5 text-sm text-muted">Katalog yükleniyor…</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="mt-16 flex flex-col items-center text-center">
             <PixelMark size={52} gap={4} />
             <h2 className="mt-5 font-display text-xl font-bold text-forest dark:text-[#34D0B6]">
@@ -111,6 +132,27 @@ export default function StudentView() {
 }
 
 function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
+  const [body, setBody] = useState<string>(lesson.body || "");
+  const [loading, setLoading] = useState<boolean>(!lesson.body && !!lesson.cid);
+
+  useEffect(() => {
+    if (lesson.body || !lesson.cid) return;
+    let alive = true;
+    setLoading(true);
+    fetchLessonBody(lesson.cid)
+      .then((t) => {
+        if (alive) setBody(t);
+      })
+      .catch(() => {
+        if (alive) setBody("İçerik şu an alınamıyor. Çevrimiçi olunca tekrar deneyin.");
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [lesson]);
   return (
     <div className="min-h-[calc(100vh-58px)] bg-paper dark:bg-[#0C1614]">
       <div className="mx-auto max-w-2xl px-6 py-9">
@@ -134,12 +176,12 @@ function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
         </h1>
 
         <div className="mt-6 flex items-center gap-3 border-y border-line py-3 dark:border-[#21342F]">
-          <SpeakButton text={lesson.body || lesson.title} />
+          <SpeakButton text={body || lesson.title} />
           <span className="text-[12px] text-muted">Sesli dinle</span>
         </div>
 
         <article className="mt-6 whitespace-pre-wrap text-[15.5px] leading-[1.75] text-ink/90 dark:text-[#DCE7E4]">
-          {lesson.body || "Bu dersin içeriği henüz hazırlanıyor."}
+          {loading ? "İçerik yükleniyor…" : body || "Bu dersin içeriği henüz hazırlanıyor."}
         </article>
       </div>
     </div>
