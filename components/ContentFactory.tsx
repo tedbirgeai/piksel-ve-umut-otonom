@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { decodeEventLog, parseEther } from "viem";
 import {
-  ROYALTY_CONTRACT_ADDRESS,
-  royaltyAbi,
+  CERTIFICATE_CONTRACT_ADDRESS,
+  certificateAbi,
   isContractConfigured,
 } from "@/lib/contract";
 import { generateContent, persistContent, newLesson } from "@/lib/actions";
@@ -86,28 +86,54 @@ export default function ContentFactory() {
 
       setPhase("registering");
       const hash = await writeContractAsync({
-        address: ROYALTY_CONTRACT_ADDRESS,
-        abi: royaltyAbi,
-        functionName: "registerContent",
-        args: [cid, parseEther(accessPrice || "0")],
+        address: CERTIFICATE_CONTRACT_ADDRESS,
+        abi: certificateAbi,
+        functionName: "mintCertificate",
+        args: [
+          cid,
+          parseEther(accessPrice || "0"),
+          sel.stage,
+          sel.subject,
+          full.title,
+        ],
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      let contentId: number | null = null;
+      let tokenId: number | null = null;
       for (const log of receipt.logs) {
         try {
-          const ev = decodeEventLog({ abi: royaltyAbi, data: log.data, topics: log.topics });
-          if (ev.eventName === "ContentRegistered") {
-            contentId = Number((ev.args as { contentId: bigint }).contentId);
+          const ev = decodeEventLog({
+            abi: certificateAbi,
+            data: log.data,
+            topics: log.topics,
+          });
+          if (ev.eventName === "CertificateMinted") {
+            tokenId = Number((ev.args as { tokenId: bigint }).tokenId);
             break;
           }
         } catch {
           /* bizim olayımız değil */
         }
       }
-      full = { ...full, contentId, txHash: hash, onChain: true };
-      updateLesson(full.id, { contentId, txHash: hash, onChain: true });
+      full = {
+        ...full,
+        contentId: tokenId,
+        tokenId,
+        txHash: hash,
+        onChain: true,
+      };
+      updateLesson(full.id, {
+        contentId: tokenId,
+        tokenId,
+        txHash: hash,
+        onChain: true,
+      });
       setResult(full);
       setPhase("done");
+      setNote(
+        tokenId !== null
+          ? `🎓 Üretim Sertifikası NFT #${tokenId} cüzdanınıza basıldı.`
+          : "İçerik zincire kaydedildi.",
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Bilinmeyen hata.");
       setPhase("error");
@@ -201,7 +227,7 @@ export default function ContentFactory() {
             <span className="flex items-center gap-2">
               {result.onChain && result.contentId !== null && (
                 <span className="rounded-full bg-hope-soft px-2.5 py-1 font-mono text-[11px] font-semibold text-hope-ink dark:bg-[#2A2415] dark:text-[#F4C781]">
-                  zincirde #{result.contentId}
+                  🎓 Sertifika NFT #{result.contentId}
                 </span>
               )}
               <span className="font-mono text-[11.5px] text-tea">

@@ -130,18 +130,23 @@ isterseniz silebilirsiniz.
 Erişim-bazlı, güvenli, çekilebilir telif sözleşmesi.
 
 ```
-contracts/RoyaltyDistributor.sol   # Sözleşme
-scripts/deploy.ts                  # Sepolia/yerel dağıtım
-test/RoyaltyDistributor.test.ts    # Birim testleri
-hardhat.config.ts                  # Ağlar + derleyici
+contracts/PikselUmutCertificate.sol  # Üretim Sertifikası NFT (ERC-721 + ERC-2981 + telif)
+contracts/RoyaltyDistributor.sol     # (eski — geriye dönük, kullanımda değil)
+scripts/deploy.ts                    # Sepolia/yerel dağıtım
+test/                                # Birim testleri
+hardhat.config.ts                    # Ağlar + derleyici
 ```
 
-### Mekanizma
-1. **registerContent(cid, accessPrice)** — üretici içeriğini kaydeder.
-2. **accessContent(contentId)** `payable` — okuyucu erişim ücretini öder;
-   ücret (platform payı düşülerek) üreticinin **çekilebilir** bakiyesine yazılır.
-3. **withdrawableRoyalty(creator)** — birikmiş telifi okur (frontend bunu kullanır).
-4. **withdraw()** — üretici telifini çeker (pull-payment, reentrancy-safe).
+### Mekanizma (Üretim Sertifikası NFT)
+Her üretilen ders, üreticinin cüzdanına basılan bir **ERC-721 NFT**'dir
+(MetaMask › NFT'ler sekmesinde görünür). NFT; IPFS CID'sini, üreticiyi ve
+kademe/ders meta verisini değiştirilemez taşır.
+1. **mintCertificate(cid, accessPrice, stage, subject, title)** — dersi NFT olarak basar.
+2. **accessContent(tokenId)** `payable` — okuyucu erişim ücretini öder; ücret
+   (platform payı düşülerek) o anki NFT **sahibinin** çekilebilir bakiyesine yazılır.
+3. **royaltyInfo(tokenId, salePrice)** — ERC-2981: ikincil satışta ilk üreticiye telif.
+4. **withdrawableRoyalty(account)** / **withdraw()** — birikmiş telifi oku / çek
+   (pull-payment, reentrancy-safe). tokenURI tamamen on-chain (base64 JSON).
 
 ### Güvenlik
 - `ReentrancyGuard` + **Checks-Effects-Interactions** + pull-payment
@@ -159,7 +164,7 @@ npm run test:contracts
 # .env.local içinde SEPOLIA_RPC_URL + PRIVATE_KEY dolu olmalı
 npm run deploy:sepolia
 # Çıktıdaki adresi .env.local içine ekleyin:
-#   NEXT_PUBLIC_ROYALTY_CONTRACT=0x....
+#   NEXT_PUBLIC_CERTIFICATE_CONTRACT=0x....
 npm run dev   # frontend artık gerçek sözleşmeyi okur
 ```
 > Yerel deneme için: bir terminalde `npm run chain`, diğerinde

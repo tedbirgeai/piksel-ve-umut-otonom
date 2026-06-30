@@ -10,15 +10,15 @@ import {
 } from "wagmi";
 import { formatEther, parseEther } from "viem";
 import {
-  ROYALTY_CONTRACT_ADDRESS,
-  royaltyAbi,
+  CERTIFICATE_CONTRACT_ADDRESS,
+  certificateAbi,
   isContractConfigured,
 } from "@/lib/contract";
 import type { Lesson } from "@/lib/types";
 
 /**
- * Zincire kayıtlı bir içeriğe erişim satın alma düğmesi.
- * accessContent(contentId) {value: accessPrice} çağırır, makbuzu bekler.
+ * Zincire kayıtlı bir içeriğe (NFT) erişim satın alma düğmesi.
+ * accessContent(tokenId) {value: accessPrice} çağırır, makbuzu bekler.
  */
 export default function AccessButton({ lesson }: { lesson: Lesson }) {
   const { address, isConnected } = useAccount();
@@ -31,30 +31,30 @@ export default function AccessButton({ lesson }: { lesson: Lesson }) {
   // Yalnızca zincire kayıtlı içerik için göster
   if (!lesson.onChain || lesson.contentId === null) return null;
 
-  const contentId = BigInt(lesson.contentId);
+  const tokenId = BigInt(lesson.contentId);
   const enabled = isConnected && isContractConfigured && Boolean(address);
 
   // Kullanıcının erişimi var mı?
   const { data: access, refetch: refetchAccess } = useReadContract({
-    address: ROYALTY_CONTRACT_ADDRESS,
-    abi: royaltyAbi,
+    address: CERTIFICATE_CONTRACT_ADDRESS,
+    abi: certificateAbi,
     functionName: "hasAccess",
-    args: address ? [contentId, address] : undefined,
+    args: address ? [tokenId, address] : undefined,
     query: { enabled },
   });
 
-  // Zincirdeki güncel erişim ücreti (contents tuple: creator, accessPrice, active, cid)
-  const { data: content } = useReadContract({
-    address: ROYALTY_CONTRACT_ADDRESS,
-    abi: royaltyAbi,
-    functionName: "contents",
-    args: [contentId],
+  // Zincirdeki güncel erişim ücreti (certificates tuple: creator, accessPrice, active, cid, …)
+  const { data: cert } = useReadContract({
+    address: CERTIFICATE_CONTRACT_ADDRESS,
+    abi: certificateAbi,
+    functionName: "certificates",
+    args: [tokenId],
     query: { enabled: isContractConfigured },
   });
 
   const price =
-    content && Array.isArray(content)
-      ? (content[1] as bigint)
+    cert && Array.isArray(cert)
+      ? (cert[1] as bigint)
       : parseEther(lesson.accessPrice || "0");
 
   const hasAccess = Boolean(access) || bought;
@@ -68,10 +68,10 @@ export default function AccessButton({ lesson }: { lesson: Lesson }) {
     setBusy(true);
     try {
       const hash = await writeContractAsync({
-        address: ROYALTY_CONTRACT_ADDRESS,
-        abi: royaltyAbi,
+        address: CERTIFICATE_CONTRACT_ADDRESS,
+        abi: certificateAbi,
         functionName: "accessContent",
-        args: [contentId],
+        args: [tokenId],
         value: price,
       });
       await publicClient?.waitForTransactionReceipt({ hash });

@@ -54,7 +54,7 @@ export default function DigitalLibrary() {
                   </span>
                   {l.onChain && l.contentId !== null && (
                     <span className="rounded-full bg-hope-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-hope-ink">
-                      zincirde #{l.contentId}
+                      🎓 NFT #{l.contentId}
                     </span>
                   )}
                 </div>

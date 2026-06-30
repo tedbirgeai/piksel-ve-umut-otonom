@@ -60,8 +60,8 @@ export default function MessageBubble({ message }: { message: ChatMessage }) {
             Piksel·Umut
           </span>
           {l?.onChain && l.contentId !== null && (
-            <span className="rounded-full bg-hope-soft px-2.5 py-0.5 font-mono text-[10.5px] font-semibold text-hope-ink dark:bg-[#2A2415] dark:text-[#F4C781]">
-              zincirde #{l.contentId}
+            <span className="inline-flex items-center gap-1 rounded-full bg-hope-soft px-2.5 py-0.5 font-mono text-[10.5px] font-semibold text-hope-ink dark:bg-[#2A2415] dark:text-[#F4C781]">
+              🎓 Sertifika NFT #{l.contentId}
             </span>
           )}
           {l?.cid && (

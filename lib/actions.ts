@@ -57,6 +57,7 @@ export function newLesson(
     cid: null,
     createdAt: Date.now(),
     contentId: null,
+    tokenId: null,
     accessPrice,
     txHash: null,
     onChain: false,

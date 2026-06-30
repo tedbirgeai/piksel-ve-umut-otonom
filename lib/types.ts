@@ -10,11 +10,12 @@ export interface Lesson {
   body: string;
   cid: string | null; // IPFS CID — pinlendiğinde dolar
   createdAt: number;
-  // Zincir kaydı (registerContent sonrası dolar)
-  contentId: number | null; // sözleşmedeki içerik kimliği
+  // Zincir kaydı (mintCertificate sonrası dolar)
+  contentId: number | null; // sözleşmedeki tokenId (NFT kimliği)
+  tokenId: number | null; // NFT token kimliği (contentId ile aynı — açıklık için)
   accessPrice: string; // ETH cinsinden erişim ücreti (örn. "0.01")
-  txHash: string | null; // kayıt işlem hash'i
-  onChain: boolean; // zincire kaydedildi mi
+  txHash: string | null; // mint işlem hash'i
+  onChain: boolean; // zincire (NFT olarak) kaydedildi mi
 }
 
 export interface OllamaResult {

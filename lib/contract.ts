@@ -2,32 +2,50 @@
 import type { Abi } from "viem";
 
 /**
- * Telif Dağıtım akıllı sözleşmesi (RoyaltyDistributor.sol).
- * Sözleşmeyi `npm run deploy:sepolia` ile dağıtın, çıktıdaki adresi
- * .env.local içine NEXT_PUBLIC_ROYALTY_CONTRACT olarak ekleyin.
+ * Piksel ve Umut "Üretim Sertifikası" sözleşmesi (PikselUmutCertificate.sol).
+ * ERC-721 + ERC-2981 + erişim-bazlı telif dağıtımı.
+ *
+ * Dağıtım:  npm run deploy:sepolia
+ * Sonra çıktıdaki adresi .env.local içine ekleyin:
+ *   NEXT_PUBLIC_CERTIFICATE_CONTRACT=0x...
+ * (Geriye dönük uyum: NEXT_PUBLIC_ROYALTY_CONTRACT da okunur.)
  */
-export const ROYALTY_CONTRACT_ADDRESS = (process.env
-  .NEXT_PUBLIC_ROYALTY_CONTRACT ??
+export const CERTIFICATE_CONTRACT_ADDRESS = (process.env
+  .NEXT_PUBLIC_CERTIFICATE_CONTRACT ??
+  process.env.NEXT_PUBLIC_ROYALTY_CONTRACT ??
   "0x0000000000000000000000000000000000000000") as `0x${string}`;
 
-/** RoyaltyDistributor ABI'si — sözleşmedeki imzalarla birebir. */
-export const royaltyAbi = [
+/** Geriye dönük ad — eski importlar çalışsın diye. */
+export const ROYALTY_CONTRACT_ADDRESS = CERTIFICATE_CONTRACT_ADDRESS;
+
+/** PikselUmutCertificate ABI'si — sözleşmedeki imzalarla birebir. */
+export const certificateAbi = [
   {
     type: "function",
-    name: "registerContent",
+    name: "mintCertificate",
     stateMutability: "nonpayable",
     inputs: [
       { name: "cid", type: "string" },
       { name: "accessPrice", type: "uint256" },
+      { name: "stage", type: "string" },
+      { name: "subject", type: "string" },
+      { name: "title", type: "string" },
     ],
-    outputs: [{ name: "contentId", type: "uint256" }],
+    outputs: [{ name: "tokenId", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "accessContent",
+    stateMutability: "payable",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [],
   },
   {
     type: "function",
     name: "setAccessPrice",
     stateMutability: "nonpayable",
     inputs: [
-      { name: "contentId", type: "uint256" },
+      { name: "tokenId", type: "uint256" },
       { name: "newPrice", type: "uint256" },
     ],
     outputs: [],
@@ -37,30 +55,23 @@ export const royaltyAbi = [
     name: "setActive",
     stateMutability: "nonpayable",
     inputs: [
-      { name: "contentId", type: "uint256" },
+      { name: "tokenId", type: "uint256" },
       { name: "active", type: "bool" },
     ],
     outputs: [],
   },
   {
     type: "function",
-    name: "accessContent",
-    stateMutability: "payable",
-    inputs: [{ name: "contentId", type: "uint256" }],
-    outputs: [],
-  },
-  {
-    type: "function",
     name: "withdrawableRoyalty",
     stateMutability: "view",
-    inputs: [{ name: "creator", type: "address" }],
+    inputs: [{ name: "account", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
     type: "function",
     name: "totalEarned",
     stateMutability: "view",
-    inputs: [{ name: "creator", type: "address" }],
+    inputs: [{ name: "account", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
@@ -72,50 +83,70 @@ export const royaltyAbi = [
   },
   {
     type: "function",
-    name: "hasAccess",
+    name: "balanceOf",
     stateMutability: "view",
-    inputs: [
-      { name: "contentId", type: "uint256" },
-      { name: "reader", type: "address" },
-    ],
-    outputs: [{ name: "", type: "bool" }],
+    inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
   },
   {
     type: "function",
-    name: "contents",
+    name: "ownerOf",
     stateMutability: "view",
-    inputs: [{ name: "contentId", type: "uint256" }],
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "tokenURI",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "string" }],
+  },
+  {
+    type: "function",
+    name: "certificates",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [
       { name: "creator", type: "address" },
       { name: "accessPrice", type: "uint256" },
       { name: "active", type: "bool" },
       { name: "cid", type: "string" },
+      { name: "stage", type: "string" },
+      { name: "subject", type: "string" },
+      { name: "title", type: "string" },
+      { name: "mintedAt", type: "uint64" },
     ],
   },
   {
     type: "function",
-    name: "platformFeeBps",
+    name: "hasAccess",
     stateMutability: "view",
-    inputs: [],
-    outputs: [{ name: "", type: "uint96" }],
+    inputs: [
+      { name: "tokenId", type: "uint256" },
+      { name: "reader", type: "address" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
   },
   {
     type: "event",
-    name: "ContentRegistered",
+    name: "CertificateMinted",
     inputs: [
-      { name: "contentId", type: "uint256", indexed: true },
+      { name: "tokenId", type: "uint256", indexed: true },
       { name: "creator", type: "address", indexed: true },
       { name: "accessPrice", type: "uint256", indexed: false },
       { name: "cid", type: "string", indexed: false },
+      { name: "stage", type: "string", indexed: false },
+      { name: "subject", type: "string", indexed: false },
     ],
   },
   {
     type: "event",
     name: "AccessPurchased",
     inputs: [
-      { name: "contentId", type: "uint256", indexed: true },
+      { name: "tokenId", type: "uint256", indexed: true },
       { name: "reader", type: "address", indexed: true },
-      { name: "creator", type: "address", indexed: true },
+      { name: "beneficiary", type: "address", indexed: true },
       { name: "amount", type: "uint256", indexed: false },
     ],
   },
@@ -123,12 +154,16 @@ export const royaltyAbi = [
     type: "event",
     name: "RoyaltyWithdrawn",
     inputs: [
-      { name: "creator", type: "address", indexed: true },
+      { name: "account", type: "address", indexed: true },
       { name: "amount", type: "uint256", indexed: false },
     ],
   },
 ] as const satisfies Abi;
 
+/** Geriye dönük ad. */
+export const royaltyAbi = certificateAbi;
+
 /** Sözleşme tanımlı mı? (sıfır adres = demo modu) */
 export const isContractConfigured =
-  ROYALTY_CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000";
+  CERTIFICATE_CONTRACT_ADDRESS !==
+  "0x0000000000000000000000000000000000000000";

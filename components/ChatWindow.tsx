@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { decodeEventLog, parseEther } from "viem";
 import {
-  ROYALTY_CONTRACT_ADDRESS,
-  royaltyAbi,
+  CERTIFICATE_CONTRACT_ADDRESS,
+  certificateAbi,
   isContractConfigured,
 } from "@/lib/contract";
 import { generateContent, persistContent, newLesson } from "@/lib/actions";
@@ -128,28 +128,48 @@ export default function ChatWindow({
 
       setPhase("registering");
       const hash = await writeContractAsync({
-        address: ROYALTY_CONTRACT_ADDRESS,
-        abi: royaltyAbi,
-        functionName: "registerContent",
-        args: [cid, parseEther(price || "0")],
+        address: CERTIFICATE_CONTRACT_ADDRESS,
+        abi: certificateAbi,
+        functionName: "mintCertificate",
+        args: [
+          cid,
+          parseEther(price || "0"),
+          sel.stage,
+          sel.subject,
+          full.title,
+        ],
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      let contentId: number | null = null;
+      let tokenId: number | null = null;
       for (const log of receipt.logs) {
         try {
-          const ev = decodeEventLog({ abi: royaltyAbi, data: log.data, topics: log.topics });
-          if (ev.eventName === "ContentRegistered") {
-            contentId = Number((ev.args as { contentId: bigint }).contentId);
+          const ev = decodeEventLog({
+            abi: certificateAbi,
+            data: log.data,
+            topics: log.topics,
+          });
+          if (ev.eventName === "CertificateMinted") {
+            tokenId = Number((ev.args as { tokenId: bigint }).tokenId);
             break;
           }
         } catch {
           /* yoksay */
         }
       }
-      full = { ...full, contentId, txHash: hash, onChain: true };
-      updateLesson(full.id, { contentId, txHash: hash, onChain: true });
+      full = { ...full, contentId: tokenId, tokenId, txHash: hash, onChain: true };
+      updateLesson(full.id, {
+        contentId: tokenId,
+        tokenId,
+        txHash: hash,
+        onChain: true,
+      });
       patchLastLesson(full);
       setPhase("done");
+      setNote(
+        tokenId !== null
+          ? `🎓 Üretim Sertifikası NFT #${tokenId} cüzdanınıza basıldı. MetaMask › NFT'ler sekmesinde görüntüleyebilirsiniz.`
+          : "İçerik zincire kaydedildi.",
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Bilinmeyen hata.");
       setPhase("error");
