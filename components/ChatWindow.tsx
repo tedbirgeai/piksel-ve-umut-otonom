@@ -39,7 +39,7 @@ export default function ChatWindow({
   const { isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
-  const { sel, setStage, setLevel, setSubject } = useCurriculum("İlkokul");
+  const { sel, setStage, setLevel, setSubject } = useCurriculum();
 
   const [prompt, setPrompt] = useState("");
   const [price, setPrice] = useState("0.01");

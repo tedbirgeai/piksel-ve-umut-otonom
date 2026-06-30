@@ -31,7 +31,7 @@ export default function ContentFactory() {
   const publicClient = usePublicClient();
 
   // Bağımlı seçim durumu — tek kaynaktan (curriculum.config) beslenir.
-  const { sel, setStage, setLevel, setSubject } = useCurriculum("İlkokul");
+  const { sel, setStage, setLevel, setSubject } = useCurriculum();
 
   const [prompt, setPrompt] = useState(
     "Fotosentezi günlük hayattan örneklerle anlat.",

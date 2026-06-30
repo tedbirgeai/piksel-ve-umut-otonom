@@ -23,7 +23,12 @@ export interface CurriculumSelection {
  * useCurriculum() durumu yönetir, <CurriculumManager> ise dependent
  * dropdown UI'ını çizer.
  */
-export function useCurriculum(initialStage = "İlkokul") {
+/**
+ * Bağımlı seçim mantığı (hook): kademe değişince seviye + ders sıfırlanır.
+ * Başlangıç kademesi de merkezi kaynaktan gelir (STAGE_KEYS[0]) — varsayılan
+ * bile sabit-kodlanmış değildir; data/curriculum.json'daki ilk kademedir.
+ */
+export function useCurriculum(initialStage: string = STAGE_KEYS[0]) {
   const init = getBranch(initialStage);
   const [sel, setSel] = useState<CurriculumSelection>({
     stage: initialStage,
