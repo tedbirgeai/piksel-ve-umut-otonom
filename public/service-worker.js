@@ -5,13 +5,13 @@
  *   - Statik varlık (script/style/font/image): cache-first + arka plan güncelleme.
  *   - Dış istekler (RPC, IPFS gateway, Ollama, /api): asla dokunma.
  */
-const CACHE = "piksel-umut-v1";
+const CACHE = "piksel-umut-v2";
 const CORE_ASSETS = [
   "/",
-  "/panel",
   "/manifest.json",
   "/icon-192.png",
   "/icon-512.png",
+  "/icon-maskable-512.png",
   "/apple-touch-icon.png",
 ];
 
@@ -19,7 +19,18 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(CORE_ASSETS))
+      // HATA ONARIMI: addAll all-or-nothing'tir — tek bir varlık 404 verirse
+      // TÜM kurulum başarısız olur ve SW hiç aktifleşmez. Her varlığı tek
+      // tek, hataya dayınıklı şekilde önbelleğe alıyoruz.
+      .then((cache) =>
+        Promise.allSettled(
+          CORE_ASSETS.map((u) =>
+            fetch(u, { cache: "reload" })
+              .then((r) => (r.ok ? cache.put(u, r) : null))
+              .catch(() => null),
+          ),
+        ),
+      )
       .then(() => self.skipWaiting()),
   );
 });
