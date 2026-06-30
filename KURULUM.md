@@ -83,9 +83,10 @@ lib/curriculum.config.ts        # HİYERARŞİK müfredat (Kademe → seviye + d
 ```
 **Dark/Light:** ThemeProvider `<html>.dark` sınıfını yönetir; globals.css'teki
 `@custom-variant dark` ile tüm `dark:` sınıfları çalışır. Tercih localStorage'da.
-**Hiyerarşik müfredat:** `lib/curriculum.config.ts` tek kaynak — kademe seçince
-`CurriculumManager` seviye/ders listelerini otomatik günceller, YZ `pedagogy`
-alanıyla dilini ayarlar. Yeni kademe/ders için yalnızca bu dosyayı düzenleyin.
+**Hiyerarşik müfredat:** Veri artık KODDA değil, merkezi yönetilebilir kaynakta:
+**`data/curriculum.json`**. `lib/curriculum.config.ts` onu okur+doğrular;
+`CurriculumManager` ve Ollama route bu tek kaynaktan beslenir. Yeni kademe/ders
+için yalnızca JSON'u düzenleyin — hiçbir kodda statik liste yoktur.
 **Kod bloğu:** Asistan yanıtındaki ```fence``` otomatik kopyalanabilir koda dönüşer.
 
 ## Frontend İzolasyonu (Workspace Root — Hardhat çakışması)

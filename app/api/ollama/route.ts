@@ -1,41 +1,19 @@
 // app/api/ollama/route.ts
 import { NextResponse } from "next/server";
+import { pedagogyFor } from "@/lib/curriculum.config";
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST ?? "http://127.0.0.1:11434";
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL ?? "llama3";
 
 /**
- * Eğitim kademesine göre pedagojik dil rehberi.
- * YZ, seçilen kademeye uygun ton, kelime ve derinlikte içerik üretir.
+ * Pedagojik dil, MERKEZİ kaynaktan gelir: data/curriculum.json → pedagogyFor().
+ * Burada statik rehber YOKTUR; kademe verisi tek noktadan yönetilir.
  */
-const LEVEL_GUIDE: Record<string, string> = {
-  Kreş:
-    "3-5 yaş okul öncesi çocuklar. Çok basit ve sıcak bir dil, kısa cümleler, " +
-    "oyunlaştırma, somut günlük örnekler ve tekrarlar kullan. Soyut terimlerden kaçın.",
-  İlkokul:
-    "6-10 yaş ilkokul öğrencileri. Basit ve açık dil, görsel betimlemeler, " +
-    "günlük hayattan örnekler, merak uyandıran sorular kullan.",
-  Ortaokul:
-    "11-14 yaş ortaokul öğrencileri. Kavramsal açıklama, neden-sonuç ilişkileri, " +
-    "temel terimler ve örnek problemlerle anlat.",
-  Lise:
-    "15-18 yaş lise öğrencileri. Akademik temel, formüller, doğru terminoloji ve " +
-    "sınav odaklı net açıklamalar kullan.",
-  Üniversite:
-    "Lisans düzeyi öğrenciler. İleri kavramlar, kaynak göstererek, uygulama ve " +
-    "tartışma soruları içeren akademik bir üslup kullan.",
-  Akademik:
-    "Araştırmacı/akademisyen düzeyi. Teknik derinlik, literatür dili, kesin " +
-    "tanımlar ve eleştirel çerçeve kullan.",
-};
-
 export async function POST(req: Request) {
   try {
     const { subject, grade, prompt, model } = await req.json();
 
-    const levelGuide =
-      LEVEL_GUIDE[grade as string] ??
-      "Hedef kitleye uygun, anlaşılır bir pedagojik dil kullan.";
+    const levelGuide = pedagogyFor(grade as string);
 
     const systemPrompt =
       `Sen deneyimli bir ${subject} eğitmenisin. Hedef kademe: ${grade}. ` +

@@ -1,0 +1,138 @@
+{
+  "version": "2026.06-full-mufredat",
+  "_aciklama": "MERKEZİ MÜFREDAT VERİ KAYNAĞI — tek doğruluk noktası. Arayüz (CurriculumManager) ve YZ (Ollama route) bu dosyadan okur. Yeni kademe/ders eklemek için yalnızca bu JSON'u düzenleyin; kod değişikliği gerekmez. Kademe = eğitim seviyesi (Kreş..Akademik), her kademenin kendi 'levels' (sınıf) ve 'subjects' (ders/disiplin) listesi vardır.",
+  "stages": [
+    {
+      "key": "Kreş",
+      "label": "Kreş",
+      "context": "3–5 yaş okul öncesi",
+      "pedagogy": "Çok basit ve sıcak bir dil, kısa cümleler, oyunlaştırma, somut günlük örnekler ve tekrarlar kullan. Soyut terimlerden kaçın.",
+      "levels": ["3 Yaş", "4 Yaş", "5 Yaş"],
+      "subjects": [
+        "Oyun & Etkinlik",
+        "Dil Gelişimi",
+        "Erken Matematik",
+        "Görsel Sanatlar",
+        "Müzik & Ritim",
+        "Drama",
+        "Doğa & Çevre",
+        "Özbakım Becerileri",
+        "Değerler Eğitimi"
+      ]
+    },
+    {
+      "key": "İlkokul",
+      "label": "İlkokul",
+      "context": "6–10 yaş",
+      "pedagogy": "Basit ve açık dil, görsel betimlemeler, günlük hayattan örnekler, merak uyandıran sorular kullan.",
+      "levels": ["1. Sınıf", "2. Sınıf", "3. Sınıf", "4. Sınıf"],
+      "subjects": [
+        "Türkçe",
+        "Matematik",
+        "Hayat Bilgisi",
+        "Fen Bilimleri",
+        "İngilizce",
+        "Görsel Sanatlar",
+        "Müzik",
+        "Beden Eğitimi ve Oyun",
+        "İnsan Hakları, Yurttaşlık ve Demokrasi",
+        "Din Kültürü ve Ahlak Bilgisi",
+        "Trafik Güvenliği"
+      ]
+    },
+    {
+      "key": "Ortaokul",
+      "label": "Ortaokul",
+      "context": "11–14 yaş",
+      "pedagogy": "Kavramsal açıklama, neden-sonuç ilişkileri, temel terimler ve örnek problemlerle anlat.",
+      "levels": ["5. Sınıf", "6. Sınıf", "7. Sınıf", "8. Sınıf"],
+      "subjects": [
+        "Türkçe",
+        "Matematik",
+        "Fen Bilimleri",
+        "Sosyal Bilgiler",
+        "İngilizce",
+        "T.C. İnkılap Tarihi ve Atatürkçülük",
+        "Din Kültürü ve Ahlak Bilgisi",
+        "Bilişim Teknolojileri ve Yazılım",
+        "Teknoloji ve Tasarım",
+        "Görsel Sanatlar",
+        "Müzik",
+        "Beden Eğitimi ve Spor",
+        "Arapça",
+        "Kur'an-ı Kerim",
+        "Peygamberimizin Hayatı"
+      ]
+    },
+    {
+      "key": "Lise",
+      "label": "Lise",
+      "context": "15–18 yaş",
+      "pedagogy": "Akademik temel, formüller, doğru terminoloji ve sınav odaklı net açıklamalar kullan.",
+      "levels": ["9. Sınıf", "10. Sınıf", "11. Sınıf", "12. Sınıf"],
+      "subjects": [
+        "Matematik",
+        "Geometri",
+        "Fizik",
+        "Kimya",
+        "Biyoloji",
+        "Türk Dili ve Edebiyatı",
+        "Tarih",
+        "T.C. İnkılap Tarihi ve Atatürkçülük",
+        "Coğrafya",
+        "Felsefe",
+        "İngilizce",
+        "İkinci Yabancı Dil (Almanca / Fransızca)",
+        "Din Kültürü ve Ahlak Bilgisi",
+        "Bilgisayar Bilimi",
+        "Sağlık Bilgisi",
+        "Görsel Sanatlar",
+        "Müzik",
+        "Beden Eğitimi ve Spor"
+      ]
+    },
+    {
+      "key": "Üniversite",
+      "label": "Üniversite",
+      "context": "Lisans düzeyi",
+      "pedagogy": "İleri kavramlar, kaynak göstererek, uygulama ve tartışma soruları içeren akademik bir üslup kullan.",
+      "levels": ["Hazırlık", "1. Sınıf", "2. Sınıf", "3. Sınıf", "4. Sınıf"],
+      "subjects": [
+        "Mühendislik",
+        "Bilgisayar & Yazılım",
+        "Tıp Bilimleri",
+        "Sağlık Bilimleri",
+        "Hemşirelik",
+        "Hukuk",
+        "İşletme & İktisat",
+        "Temel Bilimler",
+        "Sosyal Bilimler",
+        "Eğitim Bilimleri",
+        "Mimarlık & Tasarım",
+        "Güzel Sanatlar",
+        "İletişim",
+        "İlahiyat",
+        "Ziraat & Veterinerlik"
+      ]
+    },
+    {
+      "key": "Akademik",
+      "label": "Akademik",
+      "context": "Araştırmacı / akademisyen",
+      "pedagogy": "Teknik derinlik, literatür dili, kesin tanımlar ve eleştirel çerçeve kullan.",
+      "levels": ["Yüksek Lisans", "Doktora", "Doktora Sonrası"],
+      "subjects": [
+        "Literatür Taraması",
+        "Araştırma Metodolojisi",
+        "Nicel Veri Analizi",
+        "Nitel Veri Analizi",
+        "Makale & Yayın Yazımı",
+        "Tez Danışmanlığı",
+        "Akademik İngilizce",
+        "Etik & İntihal",
+        "Proje & Hibe Yazımı",
+        "Konferans & Sunum"
+      ]
+    }
+  ]
+}
