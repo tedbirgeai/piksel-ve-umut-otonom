@@ -15,19 +15,26 @@ export async function POST(req: Request) {
 
     const levelGuide = pedagogyFor(grade as string);
 
+    // Türkçe ZORUNLU — en başta, system alanında ve emir kipiyle.
+    // (llama3 Türkçe'de zayıf; tek bir "Türkçe yaz" satırı yetmiyor.)
     const systemPrompt =
+      `ÇOK ÖNEMLİ KURAL: Yanıtının TAMAMINI yalnızca TÜRKÇE yaz. ` +
+      `Tek bir İngilizce kelime, başlık veya cümle kullanma. ` +
       `Sen deneyimli bir ${subject} eğitmenisin. Hedef kademe: ${grade}. ` +
       `${levelGuide} ` +
       `Konuyu bu kademeye uygun biçimde, günlük hayattan örneklerle ve sonunda ` +
-      `kademeye uygun 3 kısa değerlendirme sorusu ile anlat. Türkçe yaz.`;
+      `kademeye uygun 3 kısa değerlendirme sorusu ile anlat. ` +
+      `Unutma: SADECE TÜRKÇE.`;
 
     const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: model ?? DEFAULT_MODEL,
-        prompt: `${systemPrompt}\n\nKonu / kaynak:\n${prompt}`,
+        system: systemPrompt,
+        prompt: `${prompt}\n\n(Yanıtı tamamen Türkçe ver.)`,
         stream: false,
+        options: { temperature: 0.6 },
       }),
     });
 
