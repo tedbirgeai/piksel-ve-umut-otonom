@@ -56,6 +56,21 @@ export const CURRICULUM_CONFIG: Record<string, CurriculumBranch> =
 /** Sıralı kademe anahtarları (dropdown sırası = JSON sırası). */
 export const STAGE_KEYS: string[] = DATA.stages.map((s) => s.key);
 
+/**
+ * DÜZ (flat) TÜRETİLMİŞ LİSTELER — codemod / self-heal bağlanma noktaları.
+ * Bir bileşende düz bir dizi gerektiğinde sabit yazmak yerine bunlar kullanılır;
+ * hepsi data/curriculum.json'dan üretilir, asla elle güncellenmez.
+ */
+export const ALL_STAGES: string[] = STAGE_KEYS;
+
+export const ALL_LEVELS: string[] = Array.from(
+  new Set(DATA.stages.flatMap((s) => s.levels)),
+);
+
+export const ALL_SUBJECTS: string[] = Array.from(
+  new Set(DATA.stages.flatMap((s) => s.subjects)),
+);
+
 /** Merkezi veri sürümü — BuildStamp bunu gösterir, drift'i ele verir. */
 export const CURRICULUM_VERSION = DATA.version;
 

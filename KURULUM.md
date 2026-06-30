@@ -130,6 +130,22 @@ başka HİÇBİR dosyada yoktur. "Eski/statik arayüz" görüyorsanız sebebi ko
 > Doğrulama: `lib/curriculum.config.ts`'te bir kademeye ders ekleyin → kaydedin →
 > sidebar'daki BuildStamp ve composer dropdown'u anında güncellenmeli.
 
+## 🩺 Otonom Self-Heal (zombi veri otomatik temizleme)
+Sabit (hardcoded) müfredat dizisi nereye sızarsa sızsın, **tek komut** onarır:
+```
+npm run heal          # tara + data/curriculum.json'a bağla (dosyaları overwrite eder)
+npm run heal:check    # sadece denetle — bulursa exit 1 (CI için)
+```
+`scripts/heal-curriculum.mjs` (sıfır bağımlılık) tüm `app/ components/ lib/ src/`
+altını tarar; `const SUBJECTS/GRADES/STAGES = [...]` gibi gömülü listeleri tespit
+edip `ALL_SUBJECTS / ALL_LEVELS / ALL_STAGES` merkezi sabitleriyle değiştirir ve
+gerekli import'u ekler. `predev` kancası sayesinde **`npm run dev` her açılışta
+otomatik koşar** — zombi veri fiziksel olarak hayatta kalamaz.
+
+## 🛡 Anti-hardcode guardrail (ESLint)
+`eslint.config.mjs` içindeki kural, `data/` dışına müfredat dizisi yazılırsa
+`npm run lint` / `next build`'i **hata** ile durdurur. Drift'i sistem reddeder.
+
 ## .env.local — zorunlu anahtarlar
 | Değişken | Nereden | Not |
 |---|---|---|
