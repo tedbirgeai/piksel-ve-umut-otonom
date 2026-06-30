@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getBranch, STAGE_KEYS } from "@/lib/curriculum.config";
+import { STAGE_KEYS } from "@/lib/curriculum.config";
 import { useLibrary } from "./LibraryProvider";
 import { useRole } from "./RoleProvider";
 import PixelMark from "./PixelMark";

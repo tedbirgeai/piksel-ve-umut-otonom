@@ -13,6 +13,7 @@ import {
 import PixelMark from "./PixelMark";
 import { useLibrary } from "./LibraryProvider";
 import { useTheme } from "./ThemeProvider";
+import { useRole } from "./RoleProvider";
 
 /**
  * Otonom Kontrol Merkezi:
@@ -29,6 +30,7 @@ export default function Sidebar({
 }) {
   const { lessons } = useLibrary();
   const { theme, toggle } = useTheme();
+  const { clearRole } = useRole();
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
@@ -190,6 +192,14 @@ export default function Sidebar({
           <span>Ana sayfa</span>
           <span>↗</span>
         </Link>
+        <button
+          type="button"
+          onClick={clearRole}
+          className="mt-1 flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-[12.5px] text-muted hover:text-forest"
+        >
+          <span>Rol değiştir</span>
+          <span>⇄</span>
+        </button>
       </div>
     </aside>
   );
