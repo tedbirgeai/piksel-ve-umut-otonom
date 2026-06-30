@@ -67,27 +67,23 @@ npm install
 npm run dev                     # http://localhost:3000
 ```
 
-## Çalışma Alanı (SaaS · Gemini/Claude standardı)
-`/panel` profesyonel, dark/light uyumlu bir platform:
+## Çalışma Masası (`/panel`)
+Multimodal üretim paneli — sekmeli, ferah temada:
 ```
-app/panel/page.tsx              # ThemeProvider + Sidebar + ChatWindow
-components/ThemeProvider.tsx    # Dark/Light (localStorage + <html>.dark)
-components/Sidebar.tsx          # Otonom Kontrol Merkezi (geçmiş/proje/telif)
-components/ChatWindow.tsx       # Profesyonel chat akışı + düşünme animasyonu
-components/MessageBubble.tsx    # Kullanıcı/asistan ayrımı + kod bloğu ayrıştırma
-components/CodeBlock.tsx        # Kopyalama düğmeli kod bloğu
-components/Composer.tsx         # Seçiciler + ses + dosya + ücret + "Zincire kaydet"
+app/panel/page.tsx              # Sekmeli çalışma masası + cüzdan (ConnectButton)
+components/ContentFactory.tsx   # Üretim Fabrikası: eğitim kademeleri + ses + dosya + üret→IPFS→zincir
+components/DigitalLibrary.tsx   # IPFS dijital kütüphane (+ AccessButton erişim satın alma)
+components/RoyaltyPanel.tsx     # Telif & Dağıtım (sözleşmeden withdrawableRoyalty okur)
 components/CurriculumManager.tsx# Bağımlı dropdown + useCurriculum() hook
-components/VoiceInput.tsx       # Web Speech API (tr-TR)
-lib/curriculum.config.ts        # HİYERARŞİK müfredat (Kademe → seviye + ders)
+components/VoiceInput.tsx       # Web Speech API (tr-TR)  ·  FileDrop.tsx (PDF/DOCX/TXT)
+lib/wagmi.ts                    # Alchemy RPC + Sepolia + RainbowKit cüzdan
+lib/curriculum.config.ts        # Müfredat (data/curriculum.json'dan okunur)
 ```
-**Dark/Light:** ThemeProvider `<html>.dark` sınıfını yönetir; globals.css'teki
-`@custom-variant dark` ile tüm `dark:` sınıfları çalışır. Tercih localStorage'da.
-**Hiyerarşik müfredat:** Veri artık KODDA değil, merkezi yönetilebilir kaynakta:
-**`data/curriculum.json`**. `lib/curriculum.config.ts` onu okur+doğrular;
-`CurriculumManager` ve Ollama route bu tek kaynaktan beslenir. Yeni kademe/ders
-için yalnızca JSON'u düzenleyin — hiçbir kodda statik liste yoktur.
-**Kod bloğu:** Asistan yanıtındaki ```fence``` otomatik kopyalanabilir koda dönüşer.
+**Cüzdan:** Navbar'da ve panel başlığında RainbowKit `ConnectButton`; Alchemy RPC
+`lib/wagmi.ts` üzerinden bağlıdır (`.env.local` → `NEXT_PUBLIC_ALCHEMY_API_KEY`).
+**Üç sekme:** Üretim Fabrikası · Dijital Kütüphane · Telif & Dağıtım — hepsi tek ekranda.
+**Müfredat:** Veri merkezi `data/curriculum.json`; `CurriculumManager` ve Ollama route
+bu tek kaynaktan beslenir. Yeni kademe/ders için yalnızca JSON'u düzenleyin.
 
 ## .env.local — zorunlu anahtarlar
 | Değişken | Nereden | Not |
