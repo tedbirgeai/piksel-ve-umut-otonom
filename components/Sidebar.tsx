@@ -1,7 +1,15 @@
 // components/Sidebar.tsx
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
+import { formatEther } from "viem";
+import {
+  ROYALTY_CONTRACT_ADDRESS,
+  royaltyAbi,
+  isContractConfigured,
+} from "@/lib/contract";
 import PixelMark from "./PixelMark";
 import { useLibrary } from "./LibraryProvider";
 import { useTheme } from "./ThemeProvider";
@@ -21,8 +29,55 @@ export default function Sidebar({
 }) {
   const { lessons } = useLibrary();
   const { theme, toggle } = useTheme();
+  const { address, isConnected } = useAccount();
+  const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawMsg, setWithdrawMsg] = useState<string | null>(null);
 
   const onChainCount = lessons.filter((l) => l.onChain).length;
+
+  // Zincirden gerçek çekilebilir telifi oku (sözleşme tanımlıysa).
+  const { data: withdrawable } = useReadContract({
+    address: ROYALTY_CONTRACT_ADDRESS,
+    abi: royaltyAbi,
+    functionName: "withdrawableRoyalty",
+    args: address ? [address] : undefined,
+    query: { enabled: isContractConfigured && !!address },
+  });
+
+  const balanceEth =
+    isContractConfigured && typeof withdrawable === "bigint"
+      ? Number(formatEther(withdrawable)).toLocaleString("tr-TR", {
+          maximumFractionDigits: 4,
+        })
+      : "0,42";
+
+  async function handleWithdraw() {
+    setWithdrawMsg(null);
+    if (!isConnected) {
+      setWithdrawMsg("Önce cüzdan bağlayın.");
+      return;
+    }
+    if (!isContractConfigured || !publicClient) {
+      setWithdrawMsg("Sözleşme dağıtılmadı (demo modu).");
+      return;
+    }
+    try {
+      setWithdrawing(true);
+      const hash = await writeContractAsync({
+        address: ROYALTY_CONTRACT_ADDRESS,
+        abi: royaltyAbi,
+        functionName: "withdraw",
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      setWithdrawMsg("Telifler cüzdanınıza aktarıldı ✓");
+    } catch (e) {
+      setWithdrawMsg(e instanceof Error ? e.message.slice(0, 80) : "İşlem iptal edildi.");
+    } finally {
+      setWithdrawing(false);
+    }
+  }
 
   return (
     <aside className="flex h-full w-[280px] flex-shrink-0 flex-col border-r border-line bg-white dark:border-[#21342F] dark:bg-[#10201D]">
@@ -114,14 +169,19 @@ export default function Sidebar({
             </span>
           </div>
           <div className="my-1.5 font-display text-2xl font-bold">
-            0,42 <span className="text-sm text-hope">ETH</span>
+            {balanceEth} <span className="text-sm text-hope">ETH</span>
           </div>
           <button
             type="button"
-            className="w-full rounded-lg bg-hope py-2 text-[12.5px] font-bold text-hope-ink"
+            onClick={handleWithdraw}
+            disabled={withdrawing}
+            className="w-full rounded-lg bg-hope py-2 text-[12.5px] font-bold text-hope-ink transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            Telifleri Çek
+            {withdrawing ? "İşleniyor…" : "Telifleri Çek"}
           </button>
+          {withdrawMsg && (
+            <p className="mt-2 text-[11px] leading-snug text-[#A9C8C2]">{withdrawMsg}</p>
+          )}
         </div>
         <Link
           href="/"

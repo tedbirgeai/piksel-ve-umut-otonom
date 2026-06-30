@@ -130,10 +130,15 @@ export default function Composer({
             <button
               type="button"
               onClick={onSend}
-              disabled={busy}
-              className="flex h-10 flex-shrink-0 items-center gap-2 rounded-xl bg-hope px-4 text-[13px] font-bold text-hope-ink transition-opacity hover:opacity-90 disabled:opacity-50"
+              disabled={busy || !value.trim()}
+              title={
+                !value.trim()
+                  ? "Önce bir konu yazın, konuşun veya belge yükleyin"
+                  : "Üret → IPFS → zincire kaydet"
+              }
+              className="flex h-10 flex-shrink-0 items-center gap-2 rounded-xl bg-hope px-4 text-[13px] font-bold text-hope-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Zincire kaydet
+              {busy ? "İşleniyor…" : "Zincire kaydet"}
               <SendGlyph />
             </button>
           </div>
