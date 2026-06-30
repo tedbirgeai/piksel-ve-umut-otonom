@@ -58,13 +58,21 @@ export default function StudentView() {
               Çevrimdışı çalışır · cüzdan gerekmez · her kademeye uygun
             </p>
           </div>
-          <button
-            type="button"
-            onClick={clearRole}
-            className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] text-muted hover:border-forest hover:text-forest dark:border-[#21342F]"
-          >
-            Rol değiştir
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <a
+              href="/"
+              className="rounded-lg border border-line px-3 py-1.5 text-[12px] text-muted hover:border-forest hover:text-forest dark:border-[#21342F]"
+            >
+              Ana sayfa
+            </a>
+            <button
+              type="button"
+              onClick={clearRole}
+              className="rounded-lg border border-line px-3 py-1.5 text-[12px] text-muted hover:border-forest hover:text-forest dark:border-[#21342F]"
+            >
+              Rol değiştir
+            </button>
+          </div>
         </div>
 
         {/* kademe süzgeci */}

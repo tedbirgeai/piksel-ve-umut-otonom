@@ -9,6 +9,7 @@ import StudentView from "@/components/StudentView";
 import SchoolDashboard from "@/components/SchoolDashboard";
 import Sidebar from "@/components/Sidebar";
 import ChatWindow from "@/components/ChatWindow";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 /**
  * OTONOM EĞİTİM EKOSİSTEMİ — rol-tabanlı giriş.
@@ -22,7 +23,9 @@ export default function PanelPage() {
   return (
     <ThemeProvider>
       <RoleProvider>
-        <PanelGate />
+        <ErrorBoundary>
+          <PanelGate />
+        </ErrorBoundary>
       </RoleProvider>
     </ThemeProvider>
   );
@@ -31,8 +34,24 @@ export default function PanelPage() {
 function PanelGate() {
   const { role, ready } = useRole();
 
-  // localStorage okunana kadar boş ekran (hydration güvenliği)
-  if (!ready) return <div className="min-h-[calc(100vh-58px)] bg-paper dark:bg-[#0C1614]" />;
+  // localStorage okunana kadar markalı yükleme ekranı (beyaz ekran değil)
+  if (!ready) {
+    return (
+      <div className="flex min-h-[calc(100vh-58px)] items-center justify-center bg-paper dark:bg-[#0C1614]">
+        <div className="grid h-12 w-12 animate-pulse grid-cols-3 grid-rows-3 gap-1">
+          <span />
+          <span />
+          <span className="rounded-sm bg-hope" />
+          <span />
+          <span className="rounded-sm bg-hope" />
+          <span className="rounded-sm bg-forest" />
+          <span className="rounded-sm bg-hope" />
+          <span className="rounded-sm bg-forest" />
+          <span className="rounded-sm bg-forest" />
+        </div>
+      </div>
+    );
+  }
 
   if (!role) return <RoleSelect />;
   if (role === "student") return <StudentView />;
