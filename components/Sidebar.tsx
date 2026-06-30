@@ -5,6 +5,7 @@ import Link from "next/link";
 import PixelMark from "./PixelMark";
 import { useLibrary } from "./LibraryProvider";
 import { useTheme } from "./ThemeProvider";
+import BuildStamp from "./BuildStamp";
 
 /**
  * Otonom Kontrol Merkezi:
@@ -130,6 +131,7 @@ export default function Sidebar({
           <span>Ana sayfa</span>
           <span>↗</span>
         </Link>
+        <BuildStamp />
       </div>
     </aside>
   );

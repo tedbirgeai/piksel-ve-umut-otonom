@@ -127,6 +127,31 @@ export const CURRICULUM_CONFIG: Record<CurriculumStage, CurriculumBranch> = {
 
 export const STAGE_KEYS = Object.keys(CURRICULUM_CONFIG) as CurriculumStage[];
 
+/**
+ * Tek doğruluk kaynağı sürümü. Arayüzdeki BuildStamp bunu gösterir;
+ * "eski arayüz" görünüyorsa sürüm/kademe sayısı anında ele verir.
+ */
+export const CURRICULUM_VERSION = "2026.06-autonomous";
+
+/**
+ * Self-healing doğrulama: config bozuk/eksikse build/dev anında net hata verir.
+ * (CurriculumManager modül yüklenirken çağırır — sessiz drift imkânsız.)
+ */
+export function validateCurriculum(): { stages: number; version: string } {
+  const issues: string[] = [];
+  for (const [key, branch] of Object.entries(CURRICULUM_CONFIG)) {
+    if (!branch?.levels?.length) issues.push(`${key}: 'levels' boş`);
+    if (!branch?.subjects?.length) issues.push(`${key}: 'subjects' boş`);
+  }
+  if (issues.length) {
+    throw new Error(
+      "[curriculum.config] Geçersiz müfredat yapılandırması — " +
+        issues.join("; "),
+    );
+  }
+  return { stages: STAGE_KEYS.length, version: CURRICULUM_VERSION };
+}
+
 export function getBranch(stage: string): CurriculumBranch {
   return (
     CURRICULUM_CONFIG[stage as CurriculumStage] ?? CURRICULUM_CONFIG["İlkokul"]

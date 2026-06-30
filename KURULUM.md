@@ -67,27 +67,8 @@ npm install
 npm run dev                     # http://localhost:3000
 ```
 
-## Gemini-benzeri Çalışma Alanı (sidebar + chat)
-`/panel` artık tam ekran, sohbet odaklı bir arayüz:
-```
-app/panel/page.tsx           # Sidebar + ChatInterface düzeni (tam yükseklik)
-components/Sidebar.tsx       # Marka · yeni içerik · geçmiş · alt bilgi
-components/ChatInterface.tsx # Mesaj akışı + composer + boru hattı
-components/LevelSelector.tsx # Bağımlı dropdown (Kademe → Seviye + Ders)
-components/VoiceInput.tsx    # Web Speech API sesli yazma (tr-TR)
-components/FileDrop.tsx      # Sürükle-bırak PDF/DOCX/TXT
-lib/curriculum.ts            # Kademe→seviye→ders verisi
-lib/actions.ts               # Üretim + pin orkestrasyonu
-```
-**Bağımlı seçim:** `LevelSelector`'da kademe değişince Seviye ve Ders listeleri
-`lib/curriculum.ts`'ten otomatik güncellenir (Kreş→"3 Yaş…", Lise→"9. Sınıf…").
-**Sesli yaz:** `VoiceInput` mikrofonu Chrome/Edge'de `tr-TR` ile canlı yazıya döker.
-**Belge:** `FileDrop` metni tamamen tarayıcıda çıkarır (sunucuya gitmez).
-> Not: `/panel` tam ekran çalışır; global Footer'ı panelde gizlemek isterseniz
-> `app/layout.tsx`'te `usePathname` ile koşullu render edebilirsiniz.
-
-## Gemini/Claude standardında Çalışma Alanı (SaaS)
-`/panel` artık profesyonel, dark/light uyumlu bir platform:
+## Çalışma Alanı (SaaS · Gemini/Claude standardı)
+`/panel` profesyonel, dark/light uyumlu bir platform:
 ```
 app/panel/page.tsx              # ThemeProvider + Sidebar + ChatWindow
 components/ThemeProvider.tsx    # Dark/Light (localStorage + <html>.dark)
@@ -106,6 +87,39 @@ lib/curriculum.config.ts        # HİYERARŞİK müfredat (Kademe → seviye + d
 `CurriculumManager` seviye/ders listelerini otomatik günceller, YZ `pedagogy`
 alanıyla dilini ayarlar. Yeni kademe/ders için yalnızca bu dosyayı düzenleyin.
 **Kod bloğu:** Asistan yanıtındaki ```fence``` otomatik kopyalanabilir koda dönüşer.
+
+## ⚠ DRIFT / BUILD-SYNC ONARIMI (eski arayüz görünüyorsa)
+Müfredatın TEK kaynağı `lib/curriculum.config.ts`'tir. Statik 6-derslik dizi
+başka HİÇBİR dosyada yoktur. "Eski/statik arayüz" görüyorsanız sebebi kod değil,
+**sizin reponuzdaki artık dosyalar veya `.next` önbelleğidir.** Kesin çözüm:
+
+1. **Artık (eski) dosyaları silin** — varsa şunlar drift yaratır:
+   ```
+   components/ContentFactory.tsx   components/ChatInterface.tsx
+   components/LevelSelector.tsx     lib/curriculum.ts
+   ```
+   (Bu pakette bunlar zaten yok — reponuzda kalmışsa silin.)
+2. **Önbelleği temizleyip taze başlatın:**
+   ```bash
+   npm run dev:fresh     # .next silinir + next dev
+   # veya:  npm run clean && npm run dev
+   ```
+3. **Tarayıcı tarafı:** Hard refresh (Cmd/Ctrl+Shift+R) veya gizli sekme.
+
+### Bu paket neden "self-healing"?
+- `next.config.ts` → geliştirmede her başlatmada **taze build kimliği** +
+  `Cache-Control: no-store`. Eski derleme/asset yapışamaz.
+- `lib/curriculum.config.ts` → `validateCurriculum()` config bozuksa **build/dev
+  anında hata** verir; sessizce eski haline düşemez.
+- `components/CurriculumManager.tsx` → modül yüklenirken `validateCurriculum()`
+  çağırır; yalnızca config'ten (`getBranch`, `STAGE_KEYS`) okur, `useState`/
+  `useEffect` içinde statik veri yoktur.
+- `components/BuildStamp.tsx` → sidebar'da **canlı** kademe sayısı + sürümü
+  gösterir. Dosyaya dokunduğunuz an buradaki değer değişir; değişmiyorsa
+  hot-reload değil cache/eski-dosya sorunudur (adım 1–2).
+
+> Doğrulama: `lib/curriculum.config.ts`'te bir kademeye ders ekleyin → kaydedin →
+> sidebar'daki BuildStamp ve composer dropdown'u anında güncellenmeli.
 
 ## .env.local — zorunlu anahtarlar
 | Değişken | Nereden | Not |
