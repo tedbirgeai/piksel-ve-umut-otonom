@@ -88,6 +88,14 @@ lib/curriculum.config.ts        # HİYERARŞİK müfredat (Kademe → seviye + d
 alanıyla dilini ayarlar. Yeni kademe/ders için yalnızca bu dosyayı düzenleyin.
 **Kod bloğu:** Asistan yanıtındaki ```fence``` otomatik kopyalanabilir koda dönüşer.
 
+## Frontend İzolasyonu (Workspace Root — Hardhat çakışması)
+Kökte Hardhat (`package.json` + lockfile) olduğu için Next.js workspace root'unu
+yanlış çıkarsayıp "inferred workspace root" uyarısı verebilir. `next.config.ts`
+bunu mimari olarak çözer: **`turbopack.root`** ve **`outputFileTracingRoot`**,
+kökü bu frontend klasörüne (`path.resolve(__dirname)`) sabitler. Kökteki
+blockchain dosyaları ve `package.json` tamamen yok sayılır. Manuel dizin
+değişikliği veya dosya silme GEREKMEZ; açılışta uyarı çıkmaz.
+
 ## ⚠ DRIFT / BUILD-SYNC ONARIMI (eski arayüz görünüyorsa)
 Müfredatın TEK kaynağı `lib/curriculum.config.ts`'tir. Statik 6-derslik dizi
 başka HİÇBİR dosyada yoktur. "Eski/statik arayüz" görüyorsanız sebebi kod değil,
