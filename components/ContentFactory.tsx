@@ -1,48 +1,38 @@
 // components/ContentFactory.tsx
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { decodeEventLog, parseEther } from "viem";
-import { generateLesson } from "@/lib/ollama";
-import { pinLesson } from "@/lib/ipfs";
-import { extractText, clampForPrompt } from "@/lib/extract";
 import {
   ROYALTY_CONTRACT_ADDRESS,
   royaltyAbi,
   isContractConfigured,
 } from "@/lib/contract";
+import { generateContent, persistContent, newLesson } from "@/lib/actions";
 import { useLibrary } from "./LibraryProvider";
+import CurriculumManager, { useCurriculum } from "./CurriculumManager";
+import VoiceInput from "./VoiceInput";
+import FileDrop from "./FileDrop";
 import type { Lesson } from "@/lib/types";
 
-type Phase =
-  | "idle"
-  | "generating"
-  | "pinning"
-  | "registering"
-  | "done"
-  | "error";
+type Phase = "idle" | "generating" | "pinning" | "registering" | "done" | "error";
 
-const SUBJECTS = ["Matematik", "Fen Bilimleri", "Türkçe", "Tarih", "İngilizce", "Sosyal Bilgiler"];
-
-/** Profesyonel eğitim kademeleri — YZ pedagojik dili buna göre ayarlar. */
-const LEVELS: { key: string; hint: string }[] = [
-  { key: "Kreş", hint: "3–5 yaş" },
-  { key: "İlkokul", hint: "6–10 yaş" },
-  { key: "Ortaokul", hint: "11–14 yaş" },
-  { key: "Lise", hint: "15–18 yaş" },
-  { key: "Üniversite", hint: "Lisans" },
-  { key: "Akademik", hint: "Araştırma" },
-];
-
+/**
+ * İçerik Üretim Fabrikası — TAM OTONOM.
+ * Müfredat (kademe/seviye/ders) verisi BU dosyada DEĞİL; merkezi kaynaktan gelir:
+ *   data/curriculum.json → lib/curriculum.config.ts → useCurriculum()/CurriculumManager
+ * Burada hiçbir sabit (hardcoded) SUBJECTS/LEVELS dizisi YOKTUR.
+ */
 export default function ContentFactory() {
   const { addLesson, updateLesson } = useLibrary();
   const { isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
 
-  const [subject, setSubject] = useState(SUBJECTS[1]);
-  const [level, setLevel] = useState(LEVELS[1].key);
+  // Bağımlı seçim durumu — tek kaynaktan (curriculum.config) beslenir.
+  const { sel, setStage, setLevel, setSubject } = useCurriculum("İlkokul");
+
   const [prompt, setPrompt] = useState(
     "Fotosentezi günlük hayattan örneklerle anlat.",
   );
@@ -52,136 +42,44 @@ export default function ContentFactory() {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
-  // Multimodal durum
-  const [listening, setListening] = useState(false);
-  const [docName, setDocName] = useState<string | null>(null);
-  const [docBusy, setDocBusy] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const recRef = useRef<unknown>(null);
-  const baseRef = useRef<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const busy =
     phase === "generating" || phase === "pinning" || phase === "registering";
-
-  // --- Mikrofon: Web Speech API (tr-TR) ---
-  const toggleMic = useCallback(() => {
-    setError(null);
-    const SR =
-      (window as unknown as { SpeechRecognition?: new () => SpeechRecognition })
-        .SpeechRecognition ??
-      (
-        window as unknown as {
-          webkitSpeechRecognition?: new () => SpeechRecognition;
-        }
-      ).webkitSpeechRecognition;
-
-    if (!SR) {
-      setNote(
-        "Tarayıcınız sesli girişi desteklemiyor (Chrome/Edge önerilir).",
-      );
-      return;
-    }
-
-    if (listening) {
-      (recRef.current as SpeechRecognition | null)?.stop();
-      return;
-    }
-
-    const rec = new SR();
-    rec.lang = "tr-TR";
-    rec.continuous = true;
-    rec.interimResults = true;
-    baseRef.current = prompt ? prompt.trim() + " " : "";
-
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      let finalTxt = "";
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalTxt += t;
-        else interim += t;
-      }
-      if (finalTxt) baseRef.current += finalTxt + " ";
-      setPrompt((baseRef.current + interim).trimStart());
-    };
-    rec.onerror = () => setListening(false);
-    rec.onend = () => setListening(false);
-
-    rec.start();
-    recRef.current = rec;
-    setListening(true);
-  }, [listening, prompt]);
-
-  // --- Doküman: PDF / DOCX / TXT metin çıkarımı ---
-  const handleFiles = useCallback(async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const file = files[0];
-    setError(null);
-    setNote(null);
-    setDocBusy(true);
-    try {
-      const { text, source } = await extractText(file);
-      if (!text) throw new Error("Belgeden metin çıkarılamadı.");
-      setDocName(source);
-      setPrompt((prev) =>
-        (prev ? prev.trim() + "\n\n" : "") +
-        `[Belge: ${source}]\n` +
-        clampForPrompt(text),
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Belge işlenemedi.");
-    } finally {
-      setDocBusy(false);
-    }
-  }, []);
 
   async function handleGenerate() {
     setError(null);
     setNote(null);
     setResult(null);
 
-    const id = crypto.randomUUID();
-    const draft: Lesson = {
-      id,
-      title: prompt.replace(/\[Belge:[^\]]*\]/g, "").trim().slice(0, 48) ||
-        `${subject} · ${level}`,
-      subject,
-      grade: level,
-      prompt,
-      body: "",
-      cid: null,
-      createdAt: Date.now(),
-      contentId: null,
+    const lesson = newLesson(
+      { subject: sel.subject, stage: sel.stage, level: sel.level, prompt },
       accessPrice,
-      txHash: null,
-      onChain: false,
-    };
+    );
 
     try {
       setPhase("generating");
-      const { text } = await generateLesson({ subject, grade: level, prompt });
-      let lesson: Lesson = { ...draft, body: text };
-      addLesson(lesson);
-      setResult(lesson);
+      const body = await generateContent({
+        subject: sel.subject,
+        stage: sel.stage,
+        level: sel.level,
+        prompt,
+      });
+      let full: Lesson = { ...lesson, body };
+      addLesson(full);
+      setResult(full);
 
       setPhase("pinning");
-      const cid = await pinLesson(lesson);
-      lesson = { ...lesson, cid };
-      updateLesson(id, { cid });
-      setResult(lesson);
+      const cid = await persistContent(full);
+      full = { ...full, cid };
+      updateLesson(full.id, { cid });
+      setResult(full);
 
       if (!isConnected) {
-        setNote(
-          "Cüzdan bağlı değil — ders üretildi ve IPFS'e pinlendi. Zincire kaydetmek için cüzdan bağlayın.",
-        );
+        setNote("Cüzdan bağlı değil — ders üretildi ve IPFS'e pinlendi. Zincire kaydetmek için cüzdan bağlayın.");
         setPhase("done");
         return;
       }
       if (!isContractConfigured || !publicClient) {
-        setNote(
-          "Telif sözleşmesi yapılandırılmadı (demo modu) — ders IPFS'e kaydedildi, zincire kayıt atlandı.",
-        );
+        setNote("Telif sözleşmesi yapılandırılmadı (demo modu) — zincir kaydı atlandı.");
         setPhase("done");
         return;
       }
@@ -194,15 +92,10 @@ export default function ContentFactory() {
         args: [cid, parseEther(accessPrice || "0")],
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
-
       let contentId: number | null = null;
       for (const log of receipt.logs) {
         try {
-          const ev = decodeEventLog({
-            abi: royaltyAbi,
-            data: log.data,
-            topics: log.topics,
-          });
+          const ev = decodeEventLog({ abi: royaltyAbi, data: log.data, topics: log.topics });
           if (ev.eventName === "ContentRegistered") {
             contentId = Number((ev.args as { contentId: bigint }).contentId);
             break;
@@ -211,8 +104,9 @@ export default function ContentFactory() {
           /* bizim olayımız değil */
         }
       }
-      updateLesson(id, { contentId, txHash: hash, onChain: true });
-      setResult({ ...lesson, contentId, txHash: hash, onChain: true });
+      full = { ...full, contentId, txHash: hash, onChain: true };
+      updateLesson(full.id, { contentId, txHash: hash, onChain: true });
+      setResult(full);
       setPhase("done");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Bilinmeyen hata.");
@@ -222,169 +116,73 @@ export default function ContentFactory() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h3 className="font-display text-2xl font-semibold text-ink">
-            Çalışma Masası
-          </h3>
-          <p className="mt-1 text-sm text-muted">
-            Yazın, konuşun ya da belge bırakın — üret, IPFS'e pinle, zincire kaydet.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-[11.5px] text-muted">
-          <span className="h-1.5 w-1.5 rounded-full bg-tea" />
-          Yerel motor · gizli ve çevrimdışı
-        </div>
+      <h3 className="font-display text-2xl font-semibold text-ink dark:text-[#EAF1EF]">
+        İçerik Üretim Fabrikası
+      </h3>
+      <p className="mt-1 text-sm text-muted">
+        Müfredat merkezi <code className="font-mono text-[12px] text-tea">data/curriculum.json</code>{" "}
+        kaynağından gelir — yaz, konuş ya da belge bırak; üret, pinle, zincire kaydet.
+      </p>
+
+      {/* Bağımlı müfredat seçicileri — merkezi veriden */}
+      <div className="mt-5">
+        <CurriculumManager
+          sel={sel}
+          onStage={setStage}
+          onLevel={setLevel}
+          onSubject={setSubject}
+        />
       </div>
 
-      {/* Ders + erişim ücreti */}
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="card !p-4">
-          <span className="mb-1.5 block text-[11.5px] text-muted">Ders</span>
-          <select
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="w-full bg-transparent text-sm font-semibold text-ink outline-none"
-          >
-            {SUBJECTS.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
-        </label>
-        <label className="card !p-4">
-          <span className="mb-1.5 block text-[11.5px] text-muted">
-            Erişim ücreti (ETH)
-          </span>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={accessPrice}
-            onChange={(e) => setAccessPrice(e.target.value)}
-            className="w-full bg-transparent text-sm font-semibold text-ink outline-none"
-          />
-        </label>
-      </div>
-
-      {/* Eğitim kademesi — segmented seçici */}
-      <div className="mt-3">
-        <span className="mb-2 block text-[11.5px] text-muted">
-          Eğitim kademesi
-        </span>
-        <div className="flex flex-wrap gap-2">
-          {LEVELS.map((l) => {
-            const active = level === l.key;
-            return (
-              <button
-                key={l.key}
-                type="button"
-                onClick={() => setLevel(l.key)}
-                className={`flex flex-col items-start rounded-xl border px-3.5 py-2 transition-colors ${
-                  active
-                    ? "border-forest bg-forest text-paper"
-                    : "border-line bg-white text-ink hover:border-forest/40"
-                }`}
-              >
-                <span className="text-[13px] font-semibold">{l.key}</span>
-                <span
-                  className={`text-[10.5px] ${active ? "text-paper/70" : "text-muted"}`}
-                >
-                  {l.hint}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Konu istemi — mikrofonlu */}
-      <div className="card mt-4">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-[11.5px] text-muted">Konu istemi</span>
-          <button
-            type="button"
-            onClick={toggleMic}
-            aria-pressed={listening}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-              listening
-                ? "bg-[#FBE4E0] text-[#B23A2E]"
-                : "bg-sand text-ink hover:bg-[#EAE3D4]"
-            }`}
-          >
-            <MicIcon active={listening} />
-            {listening ? "Dinleniyor… (durdur)" : "Sesli yaz"}
-          </button>
-        </div>
+      {/* İstem + erişim ücreti */}
+      <div className="mt-3 rounded-2xl border border-line bg-white p-3 shadow-soft dark:border-[#21342F] dark:bg-[#10201D]">
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          rows={5}
-          placeholder="Konuyu yazın, mikrofona konuşun veya aşağıya belge bırakın…"
-          className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-[#B8AE98]"
+          rows={3}
+          placeholder="Konuyu yazın, mikrofona konuşun veya belge bırakın…"
+          className="w-full resize-none bg-transparent px-2 py-1.5 text-[15px] leading-relaxed text-ink outline-none placeholder:text-[#B8AE98] dark:text-[#EAF1EF]"
         />
-
-        {/* Doküman bırakma alanı */}
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragOver(false);
-            handleFiles(e.dataTransfer.files);
-          }}
-          onClick={() => fileInputRef.current?.click()}
-          className={`mt-3 flex cursor-pointer items-center justify-center gap-3 rounded-xl border-2 border-dashed px-4 py-5 text-center transition-colors ${
-            dragOver
-              ? "border-forest bg-[#EFF4F2]"
-              : "border-line bg-paper hover:border-forest/40"
-          }`}
-        >
-          <DocIcon />
-          <div className="text-left">
-            <div className="text-[13px] font-semibold text-ink">
-              {docBusy
-                ? "Belge okunuyor…"
-                : docName
-                  ? `Eklendi: ${docName}`
-                  : "Belge sürükleyin ya da tıklayın"}
-            </div>
-            <div className="text-[11.5px] text-muted">
-              PDF · DOCX · TXT — metin otomatik çıkarılır
-            </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <VoiceInput onFinal={(t) => setPrompt((p) => (p ? p + " " + t : t))} />
+          <div className="min-w-[180px] flex-1">
+            <FileDrop
+              compact
+              onText={(text, fileName) =>
+                setPrompt((p) => (p ? p.trim() + "\n\n" : "") + `[Belge: ${fileName}]\n` + text)
+              }
+              onError={setError}
+            />
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.docx,.txt"
-            className="hidden"
-            onChange={(e) => handleFiles(e.target.files)}
-          />
-        </div>
-
-        <div className="mt-4 flex justify-end">
+          <label className="flex items-center gap-1.5 rounded-xl border border-line bg-paper px-2.5 py-2 text-[12px] text-muted dark:border-[#21342F] dark:bg-[#0C1614]">
+            <span>Ücret</span>
+            <input
+              value={accessPrice}
+              onChange={(e) => setAccessPrice(e.target.value)}
+              inputMode="decimal"
+              className="w-12 bg-transparent text-[12px] font-semibold text-ink outline-none dark:text-[#EAF1EF]"
+            />
+            <span className="font-mono text-[11px] text-tea">ETH</span>
+          </label>
           <button
             type="button"
             onClick={handleGenerate}
             disabled={busy}
-            className="btn-forest disabled:opacity-60"
+            className="flex h-10 items-center gap-2 rounded-xl bg-hope px-4 text-[13px] font-bold text-hope-ink transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {phase === "generating"
               ? "Üretiliyor…"
               : phase === "pinning"
-                ? "IPFS'e pinleniyor…"
+                ? "Pinleniyor…"
                 : phase === "registering"
-                  ? "Zincire kaydediliyor…"
-                  : "⚡ Üret → Pinle → Zincire kaydet"}
+                  ? "Zincire…"
+                  : "Üret → Pinle → Zincire kaydet"}
           </button>
         </div>
       </div>
 
-      <Pipeline phase={phase} />
-
       {note && (
-        <div className="mt-4 rounded-xl border border-[#DCE9E5] bg-[#EFF4F2] px-4 py-3 text-[13px] text-[#2A4A45]">
+        <div className="mt-4 rounded-xl border border-[#DCE9E5] bg-[#EFF4F2] px-4 py-3 text-[13px] text-[#2A4A45] dark:border-[#21342F] dark:bg-[#142824] dark:text-[#9BE3C9]">
           {note}
         </div>
       )}
@@ -395,14 +193,14 @@ export default function ContentFactory() {
       )}
 
       {result?.body && (
-        <article className="card mt-4">
+        <article className="mt-4 rounded-2xl border border-line bg-white p-4 dark:border-[#21342F] dark:bg-[#142824]">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-semibold text-ink">
+            <span className="text-[13px] font-semibold text-ink dark:text-[#EAF1EF]">
               {result.subject} · {result.grade}
             </span>
             <span className="flex items-center gap-2">
               {result.onChain && result.contentId !== null && (
-                <span className="rounded-full bg-hope-soft px-2.5 py-1 font-mono text-[11px] font-semibold text-hope-ink">
+                <span className="rounded-full bg-hope-soft px-2.5 py-1 font-mono text-[11px] font-semibold text-hope-ink dark:bg-[#2A2415] dark:text-[#F4C781]">
                   zincirde #{result.contentId}
                 </span>
               )}
@@ -411,97 +209,11 @@ export default function ContentFactory() {
               </span>
             </span>
           </div>
-          <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-ink/90">
+          <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-ink/90 dark:text-[#DCE7E4]">
             {result.body}
           </p>
         </article>
       )}
     </div>
-  );
-}
-
-function Pipeline({ phase }: { phase: Phase }) {
-  const steps = [
-    { key: "konu", label: "Konu", done: phase !== "idle" },
-    {
-      key: "yz",
-      label: "YZ taslağı",
-      done: ["pinning", "registering", "done"].includes(phase),
-      active: phase === "generating",
-    },
-    {
-      key: "pin",
-      label: "IPFS pin",
-      done: ["registering", "done"].includes(phase),
-      active: phase === "pinning",
-    },
-    {
-      key: "chain",
-      label: "Zincire kayıt",
-      done: phase === "done",
-      active: phase === "registering",
-    },
-  ];
-
-  return (
-    <div className="mt-5 flex flex-wrap items-center gap-2">
-      {steps.map((s, i) => (
-        <span key={s.key} className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${
-              s.done
-                ? "bg-[#EFF4F2] text-forest"
-                : s.active
-                  ? "bg-hope-soft text-hope-ink"
-                  : "bg-sand text-muted"
-            }`}
-          >
-            <span
-              className={`h-2 w-2 rounded-sm ${
-                s.done ? "bg-tea" : s.active ? "bg-hope" : "bg-line"
-              }`}
-            />
-            {s.label}
-          </span>
-          {i < steps.length - 1 && <span className="text-line">→</span>}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function MicIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor" />
-      <path
-        d="M5 11a7 7 0 0 0 14 0M12 18v3"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        fill="none"
-      />
-      {active && <circle cx="20" cy="5" r="3" fill="#E07A5F" />}
-    </svg>
-  );
-}
-
-function DocIcon() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-        stroke="#0F3D3A"
-        strokeWidth="1.6"
-        fill="#fff"
-      />
-      <path d="M14 2v6h6" stroke="#0F3D3A" strokeWidth="1.6" fill="none" />
-      <path
-        d="M8 13h8M8 17h5"
-        stroke="#E89B3C"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
