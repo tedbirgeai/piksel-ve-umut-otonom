@@ -89,63 +89,6 @@ lib/curriculum.config.ts        # HİYERARŞİK müfredat (Kademe → seviye + d
 için yalnızca JSON'u düzenleyin — hiçbir kodda statik liste yoktur.
 **Kod bloğu:** Asistan yanıtındaki ```fence``` otomatik kopyalanabilir koda dönüşer.
 
-## Frontend İzolasyonu (Workspace Root — Hardhat çakışması)
-Kökte Hardhat (`package.json` + lockfile) olduğu için Next.js workspace root'unu
-yanlış çıkarsayıp "inferred workspace root" uyarısı verebilir. `next.config.ts`
-bunu mimari olarak çözer: **`turbopack.root`** ve **`outputFileTracingRoot`**,
-kökü bu frontend klasörüne (`path.resolve(__dirname)`) sabitler. Kökteki
-blockchain dosyaları ve `package.json` tamamen yok sayılır. Manuel dizin
-değişikliği veya dosya silme GEREKMEZ; açılışta uyarı çıkmaz.
-
-## ⚠ DRIFT / BUILD-SYNC ONARIMI (eski arayüz görünüyorsa)
-Müfredatın TEK kaynağı `lib/curriculum.config.ts`'tir. Statik 6-derslik dizi
-başka HİÇBİR dosyada yoktur. "Eski/statik arayüz" görüyorsanız sebebi kod değil,
-**sizin reponuzdaki artık dosyalar veya `.next` önbelleğidir.** Kesin çözüm:
-
-1. **Artık (eski) dosyaları silin** — varsa şunlar drift yaratır:
-   ```
-   components/ContentFactory.tsx   components/ChatInterface.tsx
-   components/LevelSelector.tsx     lib/curriculum.ts
-   ```
-   (Bu pakette bunlar zaten yok — reponuzda kalmışsa silin.)
-2. **Önbelleği temizleyip taze başlatın:**
-   ```bash
-   npm run dev:fresh     # .next silinir + next dev
-   # veya:  npm run clean && npm run dev
-   ```
-3. **Tarayıcı tarafı:** Hard refresh (Cmd/Ctrl+Shift+R) veya gizli sekme.
-
-### Bu paket neden "self-healing"?
-- `next.config.ts` → geliştirmede her başlatmada **taze build kimliği** +
-  `Cache-Control: no-store`. Eski derleme/asset yapışamaz.
-- `lib/curriculum.config.ts` → `validateCurriculum()` config bozuksa **build/dev
-  anında hata** verir; sessizce eski haline düşemez.
-- `components/CurriculumManager.tsx` → modül yüklenirken `validateCurriculum()`
-  çağırır; yalnızca config'ten (`getBranch`, `STAGE_KEYS`) okur, `useState`/
-  `useEffect` içinde statik veri yoktur.
-- `components/BuildStamp.tsx` → sidebar'da **canlı** kademe sayısı + sürümü
-  gösterir. Dosyaya dokunduğunuz an buradaki değer değişir; değişmiyorsa
-  hot-reload değil cache/eski-dosya sorunudur (adım 1–2).
-
-> Doğrulama: `lib/curriculum.config.ts`'te bir kademeye ders ekleyin → kaydedin →
-> sidebar'daki BuildStamp ve composer dropdown'u anında güncellenmeli.
-
-## 🩺 Otonom Self-Heal (zombi veri otomatik temizleme)
-Sabit (hardcoded) müfredat dizisi nereye sızarsa sızsın, **tek komut** onarır:
-```
-npm run heal          # tara + data/curriculum.json'a bağla (dosyaları overwrite eder)
-npm run heal:check    # sadece denetle — bulursa exit 1 (CI için)
-```
-`scripts/heal-curriculum.mjs` (sıfır bağımlılık) tüm `app/ components/ lib/ src/`
-altını tarar; `const SUBJECTS/GRADES/STAGES = [...]` gibi gömülü listeleri tespit
-edip `ALL_SUBJECTS / ALL_LEVELS / ALL_STAGES` merkezi sabitleriyle değiştirir ve
-gerekli import'u ekler. `predev` kancası sayesinde **`npm run dev` her açılışta
-otomatik koşar** — zombi veri fiziksel olarak hayatta kalamaz.
-
-## 🛡 Anti-hardcode guardrail (ESLint)
-`eslint.config.mjs` içindeki kural, `data/` dışına müfredat dizisi yazılırsa
-`npm run lint` / `next build`'i **hata** ile durdurur. Drift'i sistem reddeder.
-
 ## .env.local — zorunlu anahtarlar
 | Değişken | Nereden | Not |
 |---|---|---|

@@ -2,15 +2,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import {
-  getBranch,
-  STAGE_KEYS,
-  validateCurriculum,
-} from "@/lib/curriculum.config";
-
-// Self-healing: modül yüklenir yüklenmez config'i doğrula.
-// Bozuk/eksik müfredat sessizce eski haliyle render edilemez — anında patlar.
-validateCurriculum();
+import { getBranch, STAGE_KEYS } from "@/lib/curriculum.config";
 
 export interface CurriculumSelection {
   stage: string;
