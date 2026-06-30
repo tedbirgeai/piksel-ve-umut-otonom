@@ -86,6 +86,27 @@ lib/actions.ts               # Üretim + pin orkestrasyonu
 > Not: `/panel` tam ekran çalışır; global Footer'ı panelde gizlemek isterseniz
 > `app/layout.tsx`'te `usePathname` ile koşullu render edebilirsiniz.
 
+## Gemini/Claude standardında Çalışma Alanı (SaaS)
+`/panel` artık profesyonel, dark/light uyumlu bir platform:
+```
+app/panel/page.tsx              # ThemeProvider + Sidebar + ChatWindow
+components/ThemeProvider.tsx    # Dark/Light (localStorage + <html>.dark)
+components/Sidebar.tsx          # Otonom Kontrol Merkezi (geçmiş/proje/telif)
+components/ChatWindow.tsx       # Profesyonel chat akışı + düşünme animasyonu
+components/MessageBubble.tsx    # Kullanıcı/asistan ayrımı + kod bloğu ayrıştırma
+components/CodeBlock.tsx        # Kopyalama düğmeli kod bloğu
+components/Composer.tsx         # Seçiciler + ses + dosya + ücret + "Zincire kaydet"
+components/CurriculumManager.tsx# Bağımlı dropdown + useCurriculum() hook
+components/VoiceInput.tsx       # Web Speech API (tr-TR)
+lib/curriculum.config.ts        # HİYERARŞİK müfredat (Kademe → seviye + ders)
+```
+**Dark/Light:** ThemeProvider `<html>.dark` sınıfını yönetir; globals.css'teki
+`@custom-variant dark` ile tüm `dark:` sınıfları çalışır. Tercih localStorage'da.
+**Hiyerarşik müfredat:** `lib/curriculum.config.ts` tek kaynak — kademe seçince
+`CurriculumManager` seviye/ders listelerini otomatik günceller, YZ `pedagogy`
+alanıyla dilini ayarlar. Yeni kademe/ders için yalnızca bu dosyayı düzenleyin.
+**Kod bloğu:** Asistan yanıtındaki ```fence``` otomatik kopyalanabilir koda dönüşer.
+
 ## .env.local — zorunlu anahtarlar
 | Değişken | Nereden | Not |
 |---|---|---|

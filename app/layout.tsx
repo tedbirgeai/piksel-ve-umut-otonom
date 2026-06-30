@@ -74,7 +74,7 @@ export default function RootLayout({
       lang="tr"
       className={`${display.variable} ${sans.variable} ${mono.variable}`}
     >
-      <body className="min-h-screen bg-paper font-sans text-ink antialiased">
+      <body className="min-h-screen bg-paper font-sans text-ink antialiased dark:bg-[#0C1614] dark:text-[#EAF1EF]">
         <ServiceWorkerRegister />
         <Providers>
           <Navbar />

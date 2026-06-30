@@ -1,6 +1,9 @@
 /* app/globals.css */
 @import "tailwindcss";
 
+/* Tailwind v4 class-based dark mode: <html class="dark"> (ThemeProvider yönetir) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ----------------------------------------------------------------------------
  * Piksel ve Umut — "Ferah / Açık" tema (Tailwind v4, CSS-first @theme)
  * Tüm marka token'ları burada tanımlıdır; tailwind.config.ts'e GEREK YOKTUR.
@@ -22,6 +25,7 @@
   --color-hope: #e89b3c;      /* Kehribar — umut / aksiyon */
   --color-hope-soft: #fbefd6;
   --color-hope-ink: #5a3d10;
+  --color-faint: #9aa39f;     /* En soluk metin / etiket */
 
   /* Tipografi — next/font değişkenlerine bağlanır (layout.tsx) */
   --font-display: var(--font-space-grotesk), system-ui, sans-serif;
