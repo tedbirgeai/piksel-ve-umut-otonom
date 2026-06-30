@@ -67,7 +67,26 @@ npm install
 npm run dev                     # http://localhost:3000
 ```
 
-## .env.local — zorunlu anahtarlar (hata almamak için)
+## Gemini-benzeri Çalışma Alanı (sidebar + chat)
+`/panel` artık tam ekran, sohbet odaklı bir arayüz:
+```
+app/panel/page.tsx           # Sidebar + ChatInterface düzeni (tam yükseklik)
+components/Sidebar.tsx       # Marka · yeni içerik · geçmiş · alt bilgi
+components/ChatInterface.tsx # Mesaj akışı + composer + boru hattı
+components/LevelSelector.tsx # Bağımlı dropdown (Kademe → Seviye + Ders)
+components/VoiceInput.tsx    # Web Speech API sesli yazma (tr-TR)
+components/FileDrop.tsx      # Sürükle-bırak PDF/DOCX/TXT
+lib/curriculum.ts            # Kademe→seviye→ders verisi
+lib/actions.ts               # Üretim + pin orkestrasyonu
+```
+**Bağımlı seçim:** `LevelSelector`'da kademe değişince Seviye ve Ders listeleri
+`lib/curriculum.ts`'ten otomatik güncellenir (Kreş→"3 Yaş…", Lise→"9. Sınıf…").
+**Sesli yaz:** `VoiceInput` mikrofonu Chrome/Edge'de `tr-TR` ile canlı yazıya döker.
+**Belge:** `FileDrop` metni tamamen tarayıcıda çıkarır (sunucuya gitmez).
+> Not: `/panel` tam ekran çalışır; global Footer'ı panelde gizlemek isterseniz
+> `app/layout.tsx`'te `usePathname` ile koşullu render edebilirsiniz.
+
+## .env.local — zorunlu anahtarlar
 | Değişken | Nereden | Not |
 |---|---|---|
 | `NEXT_PUBLIC_ALCHEMY_API_KEY` | dashboard.alchemy.com → App → API Key | **RPC hatasını çözer** — public rpc.sepolia.org yerine adanmış uç nokta. Tarayıcıya açıktır. |
