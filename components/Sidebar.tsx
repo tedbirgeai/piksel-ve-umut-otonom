@@ -14,6 +14,7 @@ import PixelMark from "./PixelMark";
 import { useLibrary } from "./LibraryProvider";
 import { useTheme } from "./ThemeProvider";
 import { useRole } from "./RoleProvider";
+import ReputationPanel from "./ReputationPanel";
 
 /**
  * Otonom Kontrol Merkezi:
@@ -161,8 +162,11 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* telif durumu */}
+      {/* üretici karnesi + telif durumu */}
       <div className="p-3">
+        <div className="mb-3">
+          <ReputationPanel compact />
+        </div>
         <div className="rounded-2xl bg-gradient-to-br from-forest to-forest-600 p-4 text-paper">
           <div className="flex items-center justify-between">
             <span className="text-[11.5px] text-[#A9C8C2]">Çekilebilir telif</span>
