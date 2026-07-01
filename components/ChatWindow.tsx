@@ -12,6 +12,7 @@ import {
 import { generateContent, persistContent, newLesson } from "@/lib/actions";
 import { getBranch } from "@/lib/curriculum.config";
 import { buildSuggestions } from "@/lib/suggestions";
+import { reviewContent, severityColor } from "@/lib/safety";
 import { useLibrary } from "./LibraryProvider";
 import { useCurriculum } from "./CurriculumManager";
 import MessageBubble, { type ChatMessage } from "./MessageBubble";
@@ -130,6 +131,19 @@ export default function ChatWindow({
   async function publish(lesson: Lesson) {
     setError(null);
     setNote(null);
+
+    // Güvenlik kapısı: BLOCK varsa yayınlamayı reddet.
+    const report = reviewContent({
+      body: lesson.body,
+      stage: sel.stage,
+      subject: sel.subject,
+    });
+    if (!report.safeToPublish) {
+      setError(
+        "⛔ Bu içerik güvenlik denetiminden geçemedi (yasaklı/uygunsuz ifade). Yayınlanamaz — lütfen yeniden üretin.",
+      );
+      return;
+    }
 
     // Demo modu / cüzdansız: yerel olarak yayınla (öğrenci localStorage'dan görür)
     if (!isConnected || !isContractConfigured || !publicClient) {
@@ -312,6 +326,64 @@ export default function ChatWindow({
                 kademeye uygunsa <strong>yayınlayın</strong>; değilse düzeltmek
                 için aynı konuyu yeniden üretin.
               </p>
+
+              {/* Otomatik güvenlik denetimi (2. katman) */}
+              {(() => {
+                const report = reviewContent({
+                  body: draft.body,
+                  stage: sel.stage,
+                  subject: sel.subject,
+                });
+                return (
+                  <div className="mt-4 rounded-xl border border-line bg-white p-3.5 dark:border-[#21342F] dark:bg-[#10201D]">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                        Otomatik Güvenlik Denetimi
+                      </span>
+                      <span
+                        className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                          report.score >= 80
+                            ? "bg-[#EFF4F2] text-forest dark:bg-[#142824] dark:text-[#34D0B6]"
+                            : report.score >= 50
+                              ? "bg-hope-soft text-hope-ink"
+                              : "bg-[#FBE9E5] text-[#9A3B2E]"
+                        }`}
+                      >
+                        {report.score}/100
+                      </span>
+                    </div>
+                    {report.flags.length === 0 ? (
+                      <p className="text-[12.5px] text-[#2A4A45] dark:text-[#9BE3C9]">
+                        ✓ Otomatik denetimde belirgin sorun bulunmadı. Yine de
+                        insan gözüyle son kontrolü yapın.
+                      </p>
+                    ) : (
+                      <ul className="flex flex-col gap-1.5">
+                        {report.flags.map((f, i) => {
+                          const c = severityColor(f.severity);
+                          return (
+                            <li
+                              key={i}
+                              className="flex items-start gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px]"
+                              style={{ background: c.bg, color: c.fg }}
+                            >
+                              <span className="font-bold">
+                                {f.severity === "block"
+                                  ? "⛔"
+                                  : f.severity === "warn"
+                                    ? "⚠️"
+                                    : "ℹ️"}
+                              </span>
+                              {f.message}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div className="mt-4 flex flex-wrap items-center gap-2.5">
                 <button
                   type="button"
