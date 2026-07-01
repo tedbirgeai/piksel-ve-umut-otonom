@@ -87,6 +87,75 @@
     color: var(--color-ink);
   }
 
+  /* ------------------------------------------------------------------------
+   * ERİŞİLEBİLİRLİK — WCAG 2.2 AA (dünya standardı, yasal zorunluluk)
+   * "3 yaştan profesöre herkes" = erişilebilirlik. Sıfır sürtünme detaylarda.
+   * ---------------------------------------------------------------------- */
+
+  /* Görülebilir odak halkası — klavye kullanıcıları için (2.4.7, 2.4.13) */
+  :focus-visible {
+    outline: 3px solid var(--color-tea);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .dark :focus-visible {
+    outline-color: #7fc7bc;
+  }
+  /* Fare kullanıcısında outline gösterme (yalnızca klavye) */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* İçeriğe atla bağlantısı (2.4.1 Bypass Blocks) */
+  .skip-link {
+    position: absolute;
+    left: 8px;
+    top: -48px;
+    z-index: 100;
+    background: var(--color-forest);
+    color: var(--color-paper);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: top 0.15s ease;
+  }
+  .skip-link:focus {
+    top: 8px;
+  }
+
+  /* Dokunma hedefi min 44×44px (2.5.8 Target Size) — küçük ikon butonları */
+  button,
+  a[role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+  }
+
+  /* Hareket azaltma tercihi (2.3.3 Animation from Interactions) */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Yalnızca ekran okuyucu için gizli metin */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;

@@ -77,9 +77,12 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-paper font-sans text-ink antialiased dark:bg-[#0C1614] dark:text-[#EAF1EF]">
         <ServiceWorkerRegister />
+        <a href="#main-content" className="skip-link">
+          İçeriğe atla
+        </a>
         <Providers>
           <Navbar />
-          {children}
+          <main id="main-content">{children}</main>
           <Footer />
         </Providers>
       </body>

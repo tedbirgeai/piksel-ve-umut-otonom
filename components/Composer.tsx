@@ -122,6 +122,7 @@ export default function Composer({
             }}
             rows={2}
             placeholder="Konuyu yazın, mikrofona konuşun veya belge bırakın… (Enter ile gönder)"
+            aria-label="Ders konusu veya istem metni"
             className="w-full resize-none bg-transparent px-2 py-1.5 text-[15px] leading-relaxed text-ink outline-none placeholder:text-[#B8AE98] dark:text-[#EAF1EF]"
           />
           <div className="flex items-center gap-2 pt-1.5">
@@ -131,6 +132,15 @@ export default function Composer({
 
             <div
               onClick={() => fileRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              aria-label="Belge yükle: PDF, DOCX veya TXT"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  fileRef.current?.click();
+                }
+              }}
               onDragOver={(e) => {
                 e.preventDefault();
                 setDragOver(true);
@@ -156,15 +166,19 @@ export default function Composer({
                 type="file"
                 accept=".pdf,.docx,.txt"
                 className="hidden"
+                aria-hidden="true"
+                tabIndex={-1}
                 onChange={(e) => handleFiles(e.target.files)}
               />
             </div>
 
             <label className="flex items-center gap-1.5 rounded-xl border border-line bg-paper px-2.5 py-2 text-[12px] text-muted dark:border-[#21342F] dark:bg-[#0C1614]">
+              <span className="sr-only">Erişim ücreti (ETH)</span>
               <input
                 value={price}
                 onChange={(e) => onPrice(e.target.value)}
                 inputMode="decimal"
+                aria-label="Erişim ücreti, ETH cinsinden"
                 className="w-9 bg-transparent text-[12px] font-semibold text-ink outline-none dark:text-[#EAF1EF]"
               />
               <span className="font-mono text-[11px] text-tea">ETH</span>
@@ -174,6 +188,7 @@ export default function Composer({
               type="button"
               onClick={onSend}
               disabled={busy || !value.trim()}
+              aria-label="İçerik üret (taslak oluştur)"
               title={
                 !value.trim()
                   ? "Önce bir konu yazın, konuşun veya belge yükleyin"
