@@ -61,5 +61,7 @@ export function newLesson(
     accessPrice,
     txHash: null,
     onChain: false,
+    status: "draft",
+    reviewedAt: null,
   };
 }

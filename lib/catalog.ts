@@ -52,6 +52,8 @@ function certToLesson(tokenId: number, c: readonly unknown[]): Lesson {
     accessPrice: accessPrice ? formatEther(accessPrice) : "0",
     txHash: null,
     onChain: true,
+    status: "published",
+    reviewedAt: null,
     _active: active,
   } as Lesson & { _active: boolean };
 }
@@ -110,7 +112,10 @@ function readLocal(): Lesson[] {
   try {
     const raw = localStorage.getItem(LIBRARY_KEY);
     if (!raw) return [];
-    return (JSON.parse(raw) as Lesson[]).filter((l) => l.body || l.cid);
+    // Öğrenci yalnızca YAYINLANMIŞ dersleri görür (taslaklar gizli).
+    return (JSON.parse(raw) as Lesson[]).filter(
+      (l) => (l.body || l.cid) && l.status === "published",
+    );
   } catch {
     return [];
   }

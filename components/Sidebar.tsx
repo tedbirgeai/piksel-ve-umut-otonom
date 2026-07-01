@@ -145,8 +145,17 @@ export default function Sidebar({
                     <span className="block truncate text-[13px] font-medium text-ink dark:text-[#EAF1EF]">
                       {l.title}
                     </span>
-                    <span className="block truncate text-[11px] text-muted">
-                      {l.grade}
+                    <span className="flex items-center gap-1.5 truncate text-[11px] text-muted">
+                      {l.status === "published" ? (
+                        <span className="text-[10px] font-semibold text-forest dark:text-[#34D0B6]">
+                          ● Yayında
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-semibold text-hope-ink dark:text-[#F4C781]">
+                          ○ Taslak
+                        </span>
+                      )}
+                      <span className="truncate">{l.grade}</span>
                     </span>
                   </span>
                 </button>

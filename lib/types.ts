@@ -16,6 +16,9 @@ export interface Lesson {
   accessPrice: string; // ETH cinsinden erişim ücreti (örn. "0.01")
   txHash: string | null; // mint işlem hash'i
   onChain: boolean; // zincire (NFT olarak) kaydedildi mi
+  // İçerik onay/denetim hattı
+  status: "draft" | "published"; // taslak = öğrenci görmez; yayın = katalogda
+  reviewedAt?: number | null; // yayınlanma zamanı
 }
 
 export interface OllamaResult {

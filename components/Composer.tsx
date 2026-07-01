@@ -9,7 +9,7 @@ import { useRef, useState } from "react";
 
 /**
  * Üretim Fabrikası composer'ı:
- * bağımlı müfredat seçicileri + metin + sesli yazma + dosya + ücret + "Zincire kaydet".
+ * bağımlı müfredat seçicileri + metin + sesli yazma + dosya + ücret + "Üret".
  */
 export default function Composer({
   sel,
@@ -177,11 +177,11 @@ export default function Composer({
               title={
                 !value.trim()
                   ? "Önce bir konu yazın, konuşun veya belge yükleyin"
-                  : "Üret → IPFS → zincire kaydet"
+                  : "Üret → IPFS'e pinle (taslak)"
               }
               className="flex h-10 flex-shrink-0 items-center gap-2 rounded-xl bg-hope px-4 text-[13px] font-bold text-hope-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {busy ? "İşleniyor…" : "Zincire kaydet"}
+              {busy ? "İşleniyor…" : "Üret"}
               <SendGlyph />
             </button>
           </div>

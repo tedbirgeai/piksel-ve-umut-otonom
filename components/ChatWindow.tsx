@@ -41,6 +41,7 @@ export default function ChatWindow({
   const [prompt, setPrompt] = useState("");
   const [price, setPrice] = useState("0.01");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [draft, setDraft] = useState<Lesson | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -112,28 +113,57 @@ export default function ChatWindow({
       updateLesson(full.id, { cid });
       patchLastLesson(full);
 
-      if (!isConnected) {
-        setNote("Cüzdan bağlı değil — ders üretildi ve IPFS'e pinlendi. Zincire kaydetmek için cüzdan bağlayın.");
-        setPhase("done");
-        return;
-      }
-      if (!isContractConfigured || !publicClient) {
-        setNote("Telif sözleşmesi yapılandırılmadı (demo modu) — zincir kaydı atlandı.");
-        setPhase("done");
-        return;
-      }
+      // TASLAK durur — öğrenciye gitmez. Öğretmen gözden geçirip "Yayınla" der.
+      setDraft(full);
+      setPhase("done");
+      setNote(
+        "📝 Taslak hazır ve IPFS'e pinlendi. Gözden geçirin; uygunsa aşağıdan yayınlayın. Yayınlanana kadar öğrenciler göremez.",
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bilinmeyen hata.");
+      setPhase("error");
+    }
+  }
 
+  /** Onaylanan taslağı yayınlar: zincire mint eder (cüzdan varsa) veya demo modda
+   *  yerel olarak "published" işaretler. Yayınlanınca öğrenci kütüphanesine düşer. */
+  async function publish(lesson: Lesson) {
+    setError(null);
+    setNote(null);
+
+    // Demo modu / cüzdansız: yerel olarak yayınla (öğrenci localStorage'dan görür)
+    if (!isConnected || !isContractConfigured || !publicClient) {
+      const published = {
+        ...lesson,
+        status: "published" as const,
+        reviewedAt: Date.now(),
+      };
+      updateLesson(lesson.id, {
+        status: "published",
+        reviewedAt: published.reviewedAt,
+      });
+      patchLastLesson(published);
+      setDraft(null);
+      setNote(
+        isConnected
+          ? "✅ Yayınlandı (demo modu — zincir kaydı atlandı). Öğrenci kütüphanesinde görünür."
+          : "✅ Yayınlandı. Öğrenciler görebilir. Zincire NFT olarak basmak için cüzdan bağlayın.",
+      );
+      return;
+    }
+
+    try {
       setPhase("registering");
       const hash = await writeContractAsync({
         address: CERTIFICATE_CONTRACT_ADDRESS,
         abi: certificateAbi,
         functionName: "mintCertificate",
         args: [
-          cid,
-          parseEther(price || "0"),
+          lesson.cid ?? "",
+          parseEther(lesson.accessPrice || "0"),
           sel.stage,
           sel.subject,
-          full.title,
+          lesson.title,
         ],
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -153,22 +183,33 @@ export default function ChatWindow({
           /* yoksay */
         }
       }
-      full = { ...full, contentId: tokenId, tokenId, txHash: hash, onChain: true };
-      updateLesson(full.id, {
+      const published = {
+        ...lesson,
         contentId: tokenId,
         tokenId,
         txHash: hash,
         onChain: true,
+        status: "published" as const,
+        reviewedAt: Date.now(),
+      };
+      updateLesson(lesson.id, {
+        contentId: tokenId,
+        tokenId,
+        txHash: hash,
+        onChain: true,
+        status: "published",
+        reviewedAt: published.reviewedAt,
       });
-      patchLastLesson(full);
+      patchLastLesson(published);
+      setDraft(null);
       setPhase("done");
       setNote(
         tokenId !== null
-          ? `🎓 Üretim Sertifikası NFT #${tokenId} cüzdanınıza basıldı. MetaMask › NFT'ler sekmesinde görüntüleyebilirsiniz.`
-          : "İçerik zincire kaydedildi.",
+          ? `🎓 Yayınlandı ve Üretim Sertifikası NFT #${tokenId} cüzdanınıza basıldı. Öğrenciler artık görebilir.`
+          : "✅ Yayınlandı ve zincire kaydedildi.",
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Bilinmeyen hata.");
+      setError(e instanceof Error ? e.message : "Yayınlama başarısız.");
       setPhase("error");
     }
   }
@@ -252,6 +293,59 @@ export default function ChatWindow({
           {error && (
             <div className="mt-4 rounded-xl border border-[#E7C9C3] bg-[#FBE9E5] px-4 py-3 text-[13px] text-[#9A3B2E]">
               {error}
+            </div>
+          )}
+
+          {/* GÖZDEN GEÇİR & YAYINLA — denetim hattı */}
+          {draft && phase !== "registering" && (
+            <div className="mt-5 rounded-2xl border-2 border-hope/40 bg-hope-soft/50 p-5 dark:border-[#3A2F16] dark:bg-[#211B0E]">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-hope px-2.5 py-0.5 text-[11px] font-bold text-hope-ink">
+                  TASLAK · DENETİMDE
+                </span>
+                <span className="text-[12.5px] text-muted">
+                  Yayınlanana kadar öğrenciler göremez
+                </span>
+              </div>
+              <p className="mt-3 text-[13.5px] leading-relaxed text-ink/80 dark:text-[#DCE7E4]">
+                İçeriği yukarıdan gözden geçirin. Pedagojik olarak doğru ve
+                kademeye uygunsa <strong>yayınlayın</strong>; değilse düzeltmek
+                için aynı konuyu yeniden üretin.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => publish(draft)}
+                  className="flex items-center gap-2 rounded-xl bg-forest px-4 py-2.5 text-[13.5px] font-bold text-paper transition-colors hover:bg-forest-600 dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
+                >
+                  ✓ Yayınla{" "}
+                  {isConnected && isContractConfigured
+                    ? "(zincire NFT olarak bas)"
+                    : "(öğrencilere aç)"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraft(null);
+                    setNote("Taslak beklemede bırakıldı. İstediğinizde yeni içerik üretebilirsiniz.");
+                  }}
+                  className="rounded-xl border border-line px-4 py-2.5 text-[13.5px] font-semibold text-muted hover:border-forest/40 dark:border-[#21342F]"
+                >
+                  Şimdilik taslak kalsın
+                </button>
+                <label className="ml-auto flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-2 text-[12px] text-muted dark:border-[#21342F] dark:bg-[#10201D]">
+                  <span>Erişim ücreti</span>
+                  <input
+                    value={draft.accessPrice}
+                    onChange={(e) =>
+                      setDraft({ ...draft, accessPrice: e.target.value })
+                    }
+                    inputMode="decimal"
+                    className="w-12 bg-transparent text-[12px] font-semibold text-ink outline-none dark:text-[#EAF1EF]"
+                  />
+                  <span className="font-mono text-[11px] text-tea">ETH</span>
+                </label>
+              </div>
             </div>
           )}
         </div>
