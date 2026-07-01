@@ -11,6 +11,7 @@ import {
 } from "@/lib/contract";
 import { generateContent, persistContent, newLesson } from "@/lib/actions";
 import { getBranch } from "@/lib/curriculum.config";
+import { buildSuggestions } from "@/lib/suggestions";
 import { useLibrary } from "./LibraryProvider";
 import { useCurriculum } from "./CurriculumManager";
 import MessageBubble, { type ChatMessage } from "./MessageBubble";
@@ -22,13 +23,6 @@ import PixelMark from "./PixelMark";
 import type { Lesson } from "@/lib/types";
 
 type Phase = "idle" | "generating" | "pinning" | "registering" | "done" | "error";
-
-const SUGGESTIONS = [
-  { icon: "🌱", text: "Fotosentezi günlük hayattan örneklerle anlat." },
-  { icon: "🧩", text: "Kesirler konusunu oyunlaştırarak öğret." },
-  { icon: "📜", text: "Cumhuriyet'in ilanını hikâye diliyle anlat." },
-  { icon: "⚙️", text: "Newton yasalarını bir kod örneğiyle simüle et." },
-];
 
 export default function ChatWindow({
   activeId,
@@ -228,7 +222,7 @@ export default function ChatWindow({
                 üret. Yaz, konuş ya da bir belge bırak — bilgiyi özgürleştir.
               </p>
               <div className="mt-7 grid w-full max-w-xl grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {SUGGESTIONS.map((s) => (
+                {buildSuggestions(sel.stage, sel.subject, sel.level).map((s) => (
                   <button
                     key={s.text}
                     type="button"
