@@ -101,4 +101,72 @@ describe("PikselUmutCertificate", () => {
       contract.connect(reader).accessContent(1, { value: price }),
     ).to.be.revertedWithCustomError(contract, "AlreadyHasAccess");
   });
+
+  // --- "Bir Çocuğa Ders Hediye Et" bağış havuzu ---
+
+  it("bağış havuza eklenir, bağışçı bazında sayılır", async () => {
+    const { contract, buyer } = await deploy();
+    const amt = ethers.parseEther("1");
+    await expect(
+      contract.connect(buyer).donate("Depremzede çocuklar için", { value: amt }),
+    )
+      .to.emit(contract, "Donated")
+      .withArgs(buyer.address, amt, "Depremzede çocuklar için");
+
+    expect(await contract.donationPool()).to.equal(amt);
+    expect(await contract.totalDonated()).to.equal(amt);
+    expect(await contract.donatedBy(buyer.address)).to.equal(amt);
+  });
+
+  it("boş bağış reddedilir", async () => {
+    const { contract, buyer } = await deploy();
+    await expect(
+      contract.connect(buyer).donate("", { value: 0 }),
+    ).to.be.revertedWithCustomError(contract, "EmptyDonation");
+  });
+
+  it("havuzdan üreticiye ödül aktarılır; içerik ücretsiz kalır", async () => {
+    const { contract, owner, creator, buyer } = await deploy();
+    // içerik ÜCRETSİZ (accessPrice = 0) — herkese açık
+    await contract
+      .connect(creator)
+      .mintCertificate("QmFree", 0, "İlkokul", "Türkçe", "Okuma");
+
+    const gift = ethers.parseEther("2");
+    await contract.connect(buyer).donate("Bir çocuğa armağan", { value: gift });
+
+    // yönetim, havuzdan üreticiyi ödüllendirir
+    const reward = ethers.parseEther("0.5");
+    await expect(contract.connect(owner).sponsorCreator(1, reward))
+      .to.emit(contract, "CreatorSponsored")
+      .withArgs(1, creator.address, reward);
+
+    expect(await contract.donationPool()).to.equal(gift - reward);
+    expect(await contract.lessonSponsorship(1)).to.equal(reward);
+    expect(await contract.withdrawableRoyalty(creator.address)).to.equal(reward);
+
+    // üretici ödülünü çeker
+    await expect(contract.connect(creator).withdraw()).to.changeEtherBalance(
+      creator,
+      reward,
+    );
+  });
+
+  it("havuzdan fazlası aktarılamaz", async () => {
+    const { contract, owner, creator, buyer } = await deploy();
+    await contract.connect(creator).mintCertificate("Qm", 0, "Lise", "Fizik", "X");
+    await contract.connect(buyer).donate("x", { value: ethers.parseEther("0.1") });
+    await expect(
+      contract.connect(owner).sponsorCreator(1, ethers.parseEther("1")),
+    ).to.be.revertedWithCustomError(contract, "InsufficientPool");
+  });
+
+  it("sponsorCreator yalnızca yönetim tarafından çağrılır", async () => {
+    const { contract, creator, buyer } = await deploy();
+    await contract.connect(creator).mintCertificate("Qm", 0, "Lise", "Fizik", "X");
+    await contract.connect(buyer).donate("x", { value: ethers.parseEther("1") });
+    await expect(
+      contract.connect(buyer).sponsorCreator(1, ethers.parseEther("0.1")),
+    ).to.be.revertedWithCustomError(contract, "OwnableUnauthorizedAccount");
+  });
 });

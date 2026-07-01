@@ -60,6 +60,16 @@ contract PikselUmutCertificate is
     mapping(address => uint256) private _withdrawable;
     mapping(address => uint256) private _totalEarned;
 
+    // --- "Bir Çocuğa Ders Hediye Et" bağış havuzu ---
+    // İçerik HERKESE AÇIK ve ÜCRETSİZDİR; para çocuğun erişimini değil,
+    // üreticinin emeğini ödüllendirir. Bağışçı (devlet/STK/hayırsever/okul)
+    // havuza katkı yapar; havuz, kaliteli içerik üreten öğretmenlere akar.
+    uint256 public donationPool; // dağıtılmayı bekleyen toplam bağış
+    uint256 public totalDonated; // tarihsel toplam bağış
+    uint256 public totalSponsored; // havuzdan üreticilere aktarılan toplam
+    mapping(address => uint256) public donatedBy; // bağışçı → toplam katkı
+    mapping(uint256 => uint256) public lessonSponsorship; // tokenId → aldığı ödül
+
     // --- Olaylar ---
     event CertificateMinted(
         uint256 indexed tokenId,
@@ -78,6 +88,12 @@ contract PikselUmutCertificate is
         uint256 amount
     );
     event RoyaltyWithdrawn(address indexed account, uint256 amount);
+    event Donated(address indexed donor, uint256 amount, string dedication);
+    event CreatorSponsored(
+        uint256 indexed tokenId,
+        address indexed creator,
+        uint256 amount
+    );
     event PlatformFeeUpdated(uint96 newFeeBps);
     event SecondaryRoyaltyUpdated(uint96 newBps);
     event PlatformWithdrawn(address indexed to, uint256 amount);
@@ -91,6 +107,8 @@ contract PikselUmutCertificate is
     error InsufficientPayment();
     error NothingToWithdraw();
     error TransferFailed();
+    error EmptyDonation();
+    error InsufficientPool();
 
     constructor(
         uint96 _platformFeeBps,
@@ -185,6 +203,41 @@ contract PikselUmutCertificate is
         (bool ok, ) = payable(msg.sender).call{value: amount}("");
         if (!ok) revert TransferFailed();
         emit RoyaltyWithdrawn(msg.sender, amount);
+    }
+
+    // ------------------------------------------------------------------
+    // "Bir Çocuğa Ders Hediye Et" — bağış havuzu
+    // ------------------------------------------------------------------
+
+    /// @notice Havuza bağış yap. İçerik herkese ücretsiz açık kalır; bağış
+    ///         kaliteli üretimi ödüllendirmek için birikir. `dedication`
+    ///         bağışın ithaf notudur (örn. "Depremzede çocuklar için").
+    function donate(string calldata dedication) external payable {
+        if (msg.value == 0) revert EmptyDonation();
+        donationPool += msg.value;
+        totalDonated += msg.value;
+        donatedBy[msg.sender] += msg.value;
+        emit Donated(msg.sender, msg.value, dedication);
+    }
+
+    /// @notice Yönetim, havuzdan bir dersin üreticisine ödül aktarır.
+    ///         (İleride kalite/erişim ölçütlü otomatik dağıtıma bağlanabilir.)
+    function sponsorCreator(uint256 tokenId, uint256 amount)
+        external
+        onlyOwner
+        nonReentrant
+    {
+        Certificate storage c = certificates[tokenId];
+        if (c.creator == address(0)) revert UnknownToken();
+        if (amount == 0 || amount > donationPool) revert InsufficientPool();
+
+        donationPool -= amount;
+        totalSponsored += amount;
+        lessonSponsorship[tokenId] += amount;
+        _withdrawable[c.creator] += amount;
+        _totalEarned[c.creator] += amount;
+
+        emit CreatorSponsored(tokenId, c.creator, amount);
     }
 
     // ------------------------------------------------------------------

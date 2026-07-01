@@ -16,6 +16,7 @@ import { useCurriculum } from "./CurriculumManager";
 import MessageBubble, { type ChatMessage } from "./MessageBubble";
 import Composer from "./Composer";
 import WalletButton from "./WalletButton";
+import { useRole } from "./RoleProvider";
 import PixelMark from "./PixelMark";
 import type { Lesson } from "@/lib/types";
 
@@ -40,6 +41,7 @@ export default function ChatWindow({
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
   const { sel, setStage, setLevel, setSubject } = useCurriculum();
+  const { clearRole } = useRole();
 
   const [prompt, setPrompt] = useState("");
   const [price, setPrice] = useState("0.01");
@@ -192,7 +194,22 @@ export default function ChatWindow({
           <span className="text-line">/</span>
           <span>{sel.subject}</span>
         </div>
-        <WalletButton />
+        <div className="flex items-center gap-2">
+          <a
+            href="/"
+            className="rounded-lg border border-line px-2.5 py-1.5 text-[12px] text-muted hover:border-forest hover:text-forest dark:border-[#21342F]"
+          >
+            Ana sayfa
+          </a>
+          <button
+            type="button"
+            onClick={clearRole}
+            className="rounded-lg border border-line px-2.5 py-1.5 text-[12px] text-muted hover:border-forest hover:text-forest dark:border-[#21342F]"
+          >
+            Rol değiştir
+          </button>
+          <WalletButton />
+        </div>
       </header>
 
       {/* akış */}

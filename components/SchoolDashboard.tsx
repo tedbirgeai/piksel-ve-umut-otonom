@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useLibrary } from "./LibraryProvider";
 import { useRole } from "./RoleProvider";
 import { STAGE_KEYS } from "@/lib/curriculum.config";
+import DonationCard from "./DonationCard";
 
 /**
  * OKUL & KURUM PANOSU — sınıf/öğrenci yönetimi, içerik dağıtımı, ilerleme.
@@ -131,6 +132,11 @@ export default function SchoolDashboard() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* markanın kalbi: bağış havuzu */}
+            <div className="mt-6">
+              <DonationCard />
             </div>
           </section>
         </div>

@@ -87,6 +87,15 @@ export default function StudentView() {
           ))}
         </div>
 
+        {/* bağışçı güven bandı — bilgi herkese açık */}
+        <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-[#DCE9E5] bg-[#EFF4F2] px-4 py-2.5 dark:border-[#21342F] dark:bg-[#142824]">
+          <span className="text-base">🎁</span>
+          <p className="text-[12.5px] leading-snug text-[#2A4A45] dark:text-[#9BE3C9]">
+            Buradaki tüm dersler, bağışçılar ve öğretmenler sayesinde senin için{" "}
+            <strong>ücretsiz</strong>. Öğrenmek herkesin hakkı.
+          </p>
+        </div>
+
         {/* kütüphane */}
         {loading ? (
           <div className="mt-16 flex flex-col items-center text-center">

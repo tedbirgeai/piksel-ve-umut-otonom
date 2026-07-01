@@ -83,6 +83,55 @@ export const certificateAbi = [
   },
   {
     type: "function",
+    name: "donate",
+    stateMutability: "payable",
+    inputs: [{ name: "dedication", type: "string" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "sponsorCreator",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "tokenId", type: "uint256" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "donationPool",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "totalDonated",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "event",
+    name: "Donated",
+    inputs: [
+      { name: "donor", type: "address", indexed: true },
+      { name: "amount", type: "uint256", indexed: false },
+      { name: "dedication", type: "string", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "CreatorSponsored",
+    inputs: [
+      { name: "tokenId", type: "uint256", indexed: true },
+      { name: "creator", type: "address", indexed: true },
+      { name: "amount", type: "uint256", indexed: false },
+    ],
+  },
+  {
+    type: "function",
     name: "balanceOf",
     stateMutability: "view",
     inputs: [{ name: "owner", type: "address" }],
@@ -157,6 +206,20 @@ export const certificateAbi = [
       { name: "account", type: "address", indexed: true },
       { name: "amount", type: "uint256", indexed: false },
     ],
+  },
+  {
+    type: "function",
+    name: "donatedBy",
+    stateMutability: "view",
+    inputs: [{ name: "donor", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "lessonSponsorship",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256" }],
   },
 ] as const satisfies Abi;
 

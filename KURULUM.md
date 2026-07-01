@@ -148,6 +148,15 @@ kademe/ders meta verisini değiştirilemez taşır.
 4. **withdrawableRoyalty(account)** / **withdraw()** — birikmiş telifi oku / çek
    (pull-payment, reentrancy-safe). tokenURI tamamen on-chain (base64 JSON).
 
+### "Bir Çocuğa Ders Hediye Et" — bağış havuzu (ekonomik döngü)
+İçerik TÜM çocuklara **ücretsiz ve açıktır**; para çocuğun erişimini değil
+üreticinin emeğini ödüllendirir (MEB kültürü + "bilgiyi özgürleştir" ile uyumlu).
+- **donate(dedication)** `payable` — bağışçı (okul/STK/hayırsever) havuza katkı yapar.
+- **sponsorCreator(tokenId, amount)** — yönetim, havuzdan dersi üreten öğretmene ödül aktarır.
+- Öğrenci hiç cüzdan görmez; cüzdan yalnızca bağışçı/öğretmen tarafında.
+- UI: `components/DonationCard.tsx` (Okul & Kurum panosunda), öğrenci görünümünde
+  "bağışçılar sayesinde ücretsiz" bandı.
+
 ### Güvenlik
 - `ReentrancyGuard` + **Checks-Effects-Interactions** + pull-payment
 - Custom error'lar, platform ücret tavanı (%10), `Ownable` yönetim
