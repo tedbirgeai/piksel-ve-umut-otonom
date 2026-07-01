@@ -1,0 +1,136 @@
+{
+  "version": "MEB-2024",
+  "source": "T.C. Millî Eğitim Bakanlığı Öğretim Programları (Türkiye Yüzyılı Maarif Modeli)",
+  "updatedAt": "2026-07-01",
+  "_aciklama": "KAZANIM/ÜNİTE AĞACI — müfredatın derinlik katmanı. Yapı: stage → subject → level → units[] (her ünitenin konu/kazanımları). MEB müfredatı güncellendiğinde yalnızca bu dosya + 'version' değiştirilir; arayüz ve YZ otomatik uyum sağlar. Tüm dersler/sınıflar buraya eklenebilir; burada olmayan ders için arayüz sade 'ders' seçiciyle çalışmaya devam eder (geriye dönük uyumlu).",
+  "tree": {
+    "İlkokul": {
+      "Matematik": {
+        "1. Sınıf": [
+          { "unit": "Sayılar ve Nicelikler", "topics": ["Rakamları tanıma (0-20)", "Ritmik sayma", "Nesne sayısını belirleme", "Sayıları karşılaştırma"] },
+          { "unit": "İşlemler", "topics": ["20 içinde toplama", "20 içinde çıkarma", "Günlük hayat problemleri"] },
+          { "unit": "Geometri", "topics": ["Geometrik cisimler", "Uzamsal ilişkiler", "Örüntüler"] }
+        ],
+        "4. Sınıf": [
+          { "unit": "Doğal Sayılar", "topics": ["4/5/6 basamaklı sayılar", "Basamak değeri", "Sayıları okuma-yazma", "Karşılaştırma ve sıralama"] },
+          { "unit": "Dört İşlem", "topics": ["Toplama-çıkarma", "Çarpma işlemi", "Bölme işlemi", "İşlem önceliği"] },
+          { "unit": "Kesirler", "topics": ["Kesri tanıma", "Denk kesirler", "Kesirleri karşılaştırma", "Kesirlerle toplama-çıkarma"] },
+          { "unit": "Geometri ve Ölçme", "topics": ["Açılar", "Üçgen-dörtgen", "Çevre", "Alan", "Zaman ölçme"] },
+          { "unit": "Veri", "topics": ["Şekil grafiği", "Sıklık tablosu"] }
+        ]
+      },
+      "Türkçe": {
+        "1. Sınıf": [
+          { "unit": "İlk Okuma Yazma", "topics": ["Ses temelli okuma", "Hece-kelime oluşturma", "Dik temel harfler", "Anlamlı cümle"] },
+          { "unit": "Dinleme", "topics": ["Dinleme kuralları", "Dinlediğini anlama"] },
+          { "unit": "Okuma", "topics": ["Akıcı okuma", "Görselden anlam", "Metni anlama"] }
+        ],
+        "4. Sınıf": [
+          { "unit": "Okuma", "topics": ["Akıcı okuma", "Ana fikir-yardımcı fikir", "Metin türleri", "Söz varlığı"] },
+          { "unit": "Yazma", "topics": ["Paragraf yazma", "Hikâye yazma", "Noktalama işaretleri", "Yazım kuralları"] },
+          { "unit": "Dil Bilgisi", "topics": ["İsim", "Sıfat", "Eş-zıt anlam", "Eş sesli kelimeler"] }
+        ]
+      },
+      "Fen Bilimleri": {
+        "4. Sınıf": [
+          { "unit": "Yer Kabuğu ve Gökyüzü", "topics": ["Yer kabuğunun yapısı", "Gökyüzü cisimleri"] },
+          { "unit": "Canlılar Dünyası", "topics": ["Canlıları tanıyalım", "Çevremizdeki canlılar", "Besin zinciri"] },
+          { "unit": "Kuvvetin Etkileri", "topics": ["İtme-çekme", "Kuvvetin cisimlere etkisi"] },
+          { "unit": "Maddeyi Tanıyalım", "topics": ["Maddenin hâlleri", "Maddeyi niteleyen özellikler"] },
+          { "unit": "Aydınlatma ve Ses", "topics": ["Işık kaynakları", "Sesin özellikleri"] },
+          { "unit": "İnsan ve Çevre", "topics": ["Geri dönüşüm", "Çevre kirliliği"] }
+        ]
+      },
+      "Hayat Bilgisi": {
+        "1. Sınıf": [
+          { "unit": "Okulumuzda Hayat", "topics": ["Okul kuralları", "Arkadaşlık", "Okul araç-gereçleri"] },
+          { "unit": "Evimizde Hayat", "topics": ["Aile", "Ev güvenliği", "Sorumluluklar"] },
+          { "unit": "Sağlıklı Hayat", "topics": ["Kişisel bakım", "Sağlıklı beslenme", "Güvenli oyun"] }
+        ]
+      }
+    },
+    "Ortaokul": {
+      "Matematik": {
+        "6. Sınıf": [
+          { "unit": "Sayılar ve İşlemler", "topics": ["Doğal sayılarla işlemler", "Çarpanlar ve katlar", "Kümeler", "Tam sayılar"] },
+          { "unit": "Kesirlerle İşlemler", "topics": ["Kesirlerle toplama-çıkarma", "Kesirlerle çarpma-bölme"] },
+          { "unit": "Ondalık Gösterim", "topics": ["Ondalık gösterimle işlemler", "Yüzdeler"] },
+          { "unit": "Cebir", "topics": ["Cebirsel ifadeler", "Değişken kavramı"] },
+          { "unit": "Oran", "topics": ["Oran kavramı", "Oranı problemlerde kullanma"] },
+          { "unit": "Geometri ve Ölçme", "topics": ["Açılar", "Alan (üçgen-paralelkenar)", "Çember", "Hacim (dikdörtgenler prizması)"] },
+          { "unit": "Veri İşleme", "topics": ["Veri toplama", "Aritmetik ortalama-açıklık"] }
+        ],
+        "8. Sınıf": [
+          { "unit": "Çarpanlar ve Katlar", "topics": ["EBOB-EKOK", "Asal çarpanlar"] },
+          { "unit": "Üslü İfadeler", "topics": ["Üslü ifadeler", "Bilimsel gösterim"] },
+          { "unit": "Kareköklü İfadeler", "topics": ["Karekök", "Kareköklü ifadelerle işlemler"] },
+          { "unit": "Cebirsel İfadeler ve Özdeşlikler", "topics": ["Özdeşlikler", "Çarpanlara ayırma"] },
+          { "unit": "Doğrusal Denklemler", "topics": ["Birinci dereceden denklemler", "Eğim", "Doğru grafiği"] },
+          { "unit": "Eşitsizlikler", "topics": ["Birinci dereceden eşitsizlikler"] },
+          { "unit": "Geometri", "topics": ["Üçgenler", "Pisagor bağıntısı", "Dönüşüm geometrisi", "Katı cisimler"] },
+          { "unit": "Olasılık", "topics": ["Basit olayların olasılığı"] }
+        ]
+      },
+      "Fen Bilimleri": {
+        "7. Sınıf": [
+          { "unit": "Güneş Sistemi ve Ötesi", "topics": ["Uzay araştırmaları", "Gök cisimleri"] },
+          { "unit": "Hücre ve Bölünmeler", "topics": ["Hücre", "Mitoz", "Mayoz"] },
+          { "unit": "Kuvvet ve Enerji", "topics": ["Kütle-ağırlık", "Kinetik-potansiyel enerji"] },
+          { "unit": "Saf Madde ve Karışımlar", "topics": ["Atomun yapısı", "Periyodik sistem", "Karışımlar"] },
+          { "unit": "Işığın Madde ile Etkileşimi", "topics": ["Işığın yansıması", "Aynalar", "Mercekler"] },
+          { "unit": "Elektrik Devreleri", "topics": ["Ampul parlaklığı", "Direnç"] }
+        ],
+        "8. Sınıf": [
+          { "unit": "Mevsimler ve İklim", "topics": ["Mevsimlerin oluşumu", "İklim-hava olayları"] },
+          { "unit": "DNA ve Genetik Kod", "topics": ["DNA", "Kalıtım", "Mutasyon-modifikasyon", "Biyoteknoloji"] },
+          { "unit": "Basınç", "topics": ["Katı-sıvı-gaz basıncı"] },
+          { "unit": "Madde ve Endüstri", "topics": ["Periyodik sistem", "Kimyasal tepkimeler", "Asit-baz"] },
+          { "unit": "Enerji Dönüşümleri", "topics": ["Besin zinciri", "Fotosentez", "Solunum"] },
+          { "unit": "Elektrik Yükleri", "topics": ["Elektriklenme", "Elektrik enerjisi"] }
+        ]
+      },
+      "Türkçe": {
+        "7. Sınıf": [
+          { "unit": "Okuma-Anlama", "topics": ["Metin türleri", "Ana düşünce", "Söz sanatları", "Deyim-atasözü"] },
+          { "unit": "Dil Bilgisi", "topics": ["Fiiller", "Fiilimsi", "Zarf", "Cümlenin ögeleri"] },
+          { "unit": "Yazma", "topics": ["Bilgilendirici metin", "Öyküleyici metin", "Yazım-noktalama"] }
+        ]
+      }
+    },
+    "Lise": {
+      "Matematik": {
+        "9. Sınıf": [
+          { "unit": "Mantık", "topics": ["Önermeler", "Bileşik önermeler"] },
+          { "unit": "Kümeler", "topics": ["Kümelerde işlemler", "Kartezyen çarpım"] },
+          { "unit": "Denklem ve Eşitsizlikler", "topics": ["Birinci dereceden denklemler", "Mutlak değer", "Üslü-köklü ifadeler"] },
+          { "unit": "Üçgenler", "topics": ["Üçgende açılar", "Benzerlik", "Açıortay-kenarortay", "Trigonometri girişi"] },
+          { "unit": "Veri", "topics": ["Merkezî eğilim ölçüleri", "Yayılım ölçüleri"] }
+        ],
+        "12. Sınıf": [
+          { "unit": "Üstel ve Logaritmik Fonksiyonlar", "topics": ["Üstel fonksiyon", "Logaritma", "Logaritmik denklemler"] },
+          { "unit": "Diziler", "topics": ["Aritmetik dizi", "Geometrik dizi"] },
+          { "unit": "Türev", "topics": ["Limit-süreklilik", "Türev kuralları", "Türevin uygulamaları", "Maksimum-minimum"] },
+          { "unit": "İntegral", "topics": ["Belirsiz integral", "Belirli integral", "Alan hesabı"] },
+          { "unit": "Analitik Geometri", "topics": ["Çember denklemi"] }
+        ]
+      },
+      "Fizik": {
+        "9. Sınıf": [
+          { "unit": "Fizik Bilimine Giriş", "topics": ["Fiziğin alt dalları", "Fiziksel nicelikler", "Ölçme"] },
+          { "unit": "Madde ve Özellikleri", "topics": ["Kütle-hacim-özkütle", "Dayanıklılık", "Yüzey gerilimi"] },
+          { "unit": "Hareket ve Kuvvet", "topics": ["Konum-yer değiştirme", "Sürat-hız", "Newton yasaları"] },
+          { "unit": "Enerji", "topics": ["İş-güç", "Kinetik-potansiyel enerji", "Enerjinin korunumu"] },
+          { "unit": "Isı ve Sıcaklık", "topics": ["Isı-sıcaklık farkı", "Genleşme", "Hâl değişimi"] }
+        ]
+      },
+      "Türk Dili ve Edebiyatı": {
+        "9. Sınıf": [
+          { "unit": "Giriş", "topics": ["Edebiyatın tanımı", "Edebiyat-bilim ilişkisi", "Metin türleri"] },
+          { "unit": "Hikâye", "topics": ["Olay-durum hikâyesi", "Hikâye unsurları"] },
+          { "unit": "Şiir", "topics": ["Şiir bilgisi", "Ölçü-uyak", "Söz sanatları"] },
+          { "unit": "Roman-Tiyatro", "topics": ["Roman türleri", "Tiyatro türleri"] }
+        ]
+      }
+    }
+  }
+}

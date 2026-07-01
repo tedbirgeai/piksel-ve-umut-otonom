@@ -4,6 +4,7 @@
 import VoiceInput from "./VoiceInput";
 import CurriculumManager, { type CurriculumSelection } from "./CurriculumManager";
 import { extractText, clampForPrompt } from "@/lib/extract";
+import { getUnits } from "@/lib/curriculum.config";
 import { useRef, useState } from "react";
 
 /**
@@ -39,6 +40,17 @@ export default function Composer({
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
+  // MEB kazanım ağacı: bu seçim için ünite/konu varsa opsiyonel seçici göster
+  const units = getUnits(sel.stage, sel.subject, sel.level);
+
+  function applyTopic(topic: string) {
+    if (!topic) return;
+    onChange(
+      `"${topic}" konusunu ${sel.stage} ${sel.level} seviyesine uygun, ` +
+        `${sel.subject} dersi kazanımlarına göre anlat.`,
+    );
+  }
+
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     try {
@@ -66,6 +78,37 @@ export default function Composer({
             onSubject={onSubject}
           />
         </div>
+
+        {units.length > 0 && (
+          <div className="mb-2.5 rounded-xl border border-line bg-white px-3.5 py-2.5 dark:border-[#21342F] dark:bg-[#10201D]">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-wide text-faint">
+                MEB Kazanım — Ünite / Konu
+              </span>
+              <span className="rounded-full bg-sand px-2 py-0.5 text-[9.5px] font-semibold text-forest dark:bg-[#142824] dark:text-[#34D0B6]">
+                müfredata bağlı
+              </span>
+            </div>
+            <select
+              defaultValue=""
+              onChange={(e) => applyTopic(e.target.value)}
+              className="w-full cursor-pointer bg-transparent text-[13.5px] font-medium text-ink outline-none dark:text-[#EAF1EF]"
+            >
+              <option value="" disabled>
+                Konu seç → istem otomatik hazırlansın
+              </option>
+              {units.map((u) => (
+                <optgroup key={u.unit} label={u.unit}>
+                  {u.topics.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="rounded-[18px] border border-line bg-white p-3 shadow-soft dark:border-[#21342F] dark:bg-[#10201D]">
           <textarea
