@@ -4,6 +4,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { STAGE_KEYS } from "@/lib/curriculum.config";
 import { getPublishedLessons, fetchLessonBody } from "@/lib/catalog";
+import {
+  markOpened,
+  toggleCompleted,
+  isCompleted,
+  progressStats,
+} from "@/lib/progress";
 import { useRole } from "./RoleProvider";
 import PixelMark from "./PixelMark";
 import type { Lesson } from "@/lib/types";
@@ -38,6 +44,11 @@ export default function StudentView() {
     if (stage === "Hepsi") return lessons;
     return lessons.filter((l) => (l.grade || "").startsWith(stage));
   }, [lessons, stage]);
+
+  const stats = useMemo(
+    () => progressStats(lessons.map((l) => l.id)),
+    [lessons, open],
+  );
 
   if (open) {
     return <Reader lesson={open} onBack={() => setOpen(null)} />;
@@ -74,6 +85,40 @@ export default function StudentView() {
             </button>
           </div>
         </div>
+
+        {/* ilerleme özeti — cihazda yerel, gizlilik öncelikli */}
+        {!loading && lessons.length > 0 && (
+          <div className="mt-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-5 py-4 dark:border-[#21342F] dark:bg-[#10201D]">
+            <div className="flex-1">
+              <div className="mb-1 flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-ink dark:text-[#EAF1EF]">
+                  İlerlemen
+                </span>
+                <span className="text-muted">
+                  {stats.completed}/{stats.total} ders tamamlandı
+                </span>
+              </div>
+              <div
+                className="h-2 overflow-hidden rounded-full bg-line dark:bg-[#21342F]"
+                role="progressbar"
+                aria-valuenow={stats.percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Öğrenme ilerlemesi"
+              >
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-forest to-hope transition-all"
+                  style={{ width: `${stats.percent}%` }}
+                />
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-display text-2xl font-bold tracking-tightest text-forest dark:text-[#34D0B6]">
+                {stats.percent}%
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* kademe süzgeci */}
         <div className="mt-6 flex flex-wrap gap-2">
@@ -121,7 +166,10 @@ export default function StudentView() {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => setOpen(l)}
+                onClick={() => {
+                  markOpened(l.id);
+                  setOpen(l);
+                }}
                 className="group flex flex-col rounded-2xl border border-line bg-white p-5 text-left transition-all hover:-translate-y-1 hover:border-forest/40 hover:shadow-[0_18px_40px_-26px_rgba(15,61,58,0.4)] dark:border-[#21342F] dark:bg-[#10201D]"
               >
                 <div className="flex items-center gap-2">
@@ -129,6 +177,11 @@ export default function StudentView() {
                     {(l.grade || "Genel").split("·")[0].trim()}
                   </span>
                   <span className="text-[11px] text-muted">{l.subject}</span>
+                  {isCompleted(l.id) && (
+                    <span className="ml-auto rounded-full bg-[#EFF4F2] px-2 py-0.5 text-[10px] font-semibold text-forest dark:bg-[#142824] dark:text-[#34D0B6]">
+                      ✓ Tamamlandı
+                    </span>
+                  )}
                 </div>
                 <h3 className="mt-3 line-clamp-2 font-display text-[17px] font-semibold leading-snug tracking-tightest text-ink dark:text-[#EAF1EF]">
                   {l.title}
@@ -151,6 +204,7 @@ export default function StudentView() {
 function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
   const [body, setBody] = useState<string>(lesson.body || "");
   const [loading, setLoading] = useState<boolean>(!lesson.body && !!lesson.cid);
+  const [done, setDone] = useState<boolean>(isCompleted(lesson.id));
 
   useEffect(() => {
     if (lesson.body || !lesson.cid) return;
@@ -200,6 +254,27 @@ function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
         <article className="mt-6 whitespace-pre-wrap text-[15.5px] leading-[1.75] text-ink/90 dark:text-[#DCE7E4]">
           {loading ? "İçerik yükleniyor…" : body || "Bu dersin içeriği henüz hazırlanıyor."}
         </article>
+
+        {/* dersi tamamla — ilerleme cihazda yerel tutulur */}
+        <div className="mt-8 flex items-center gap-3 border-t border-line pt-6 dark:border-[#21342F]">
+          <button
+            type="button"
+            onClick={() => setDone(toggleCompleted(lesson.id))}
+            aria-pressed={done}
+            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[14px] font-bold transition-colors ${
+              done
+                ? "bg-forest text-paper dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
+                : "border border-forest text-forest hover:bg-[#EFF4F2] dark:border-[#34D0B6] dark:text-[#34D0B6] dark:hover:bg-[#142824]"
+            }`}
+          >
+            {done ? "✓ Tamamlandı" : "Dersi tamamladım"}
+          </button>
+          <span className="text-[12.5px] text-muted">
+            {done
+              ? "Tebrikler! Bu ders ilerlemene eklendi."
+              : "Bitirince işaretle — ilerlemen yalnızca bu cihazda tutulur."}
+          </span>
+        </div>
       </div>
     </div>
   );
