@@ -17,6 +17,7 @@ import MessageBubble, { type ChatMessage } from "./MessageBubble";
 import Composer from "./Composer";
 import WalletButton from "./WalletButton";
 import { useRole } from "./RoleProvider";
+import AIStatus from "./AIStatus";
 import PixelMark from "./PixelMark";
 import type { Lesson } from "@/lib/types";
 
@@ -195,6 +196,7 @@ export default function ChatWindow({
           <span>{sel.subject}</span>
         </div>
         <div className="flex items-center gap-2">
+          <AIStatus />
           <a
             href="/"
             className="rounded-lg border border-line px-2.5 py-1.5 text-[12px] text-muted hover:border-forest hover:text-forest dark:border-[#21342F]"
