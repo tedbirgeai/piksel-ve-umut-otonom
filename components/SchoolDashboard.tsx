@@ -1,10 +1,11 @@
 // components/SchoolDashboard.tsx
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLibrary } from "./LibraryProvider";
 import { useRole } from "./RoleProvider";
 import { STAGE_KEYS } from "@/lib/curriculum.config";
+import { progressStats } from "@/lib/progress";
 import DonationCard from "./DonationCard";
 
 /**
@@ -21,10 +22,21 @@ const CLASSES = [
 export default function SchoolDashboard() {
   const { lessons } = useLibrary();
   const { clearRole } = useRole();
+  const [distributed, setDistributed] = useState<string[]>([]);
 
   const totalStudents = useMemo(
     () => CLASSES.reduce((s, c) => s + c.students, 0),
     [],
+  );
+
+  // Gerçek veriler: yalnızca YAYINLANMIŞ dersler + cihazdaki ilerleme
+  const publishedLessons = useMemo(
+    () => lessons.filter((l) => l.status === "published"),
+    [lessons],
+  );
+  const realProgress = useMemo(
+    () => progressStats(publishedLessons.map((l) => l.id)),
+    [publishedLessons],
   );
 
   return (
@@ -61,16 +73,25 @@ export default function SchoolDashboard() {
         <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Stat label="Sınıf" value={String(CLASSES.length)} />
           <Stat label="Öğrenci" value={String(totalStudents)} />
-          <Stat label="Dağıtılan ders" value={String(lessons.length)} />
-          <Stat label="Ortalama ilerleme" value="70%" accent />
+          <Stat label="Yayındaki ders" value={String(publishedLessons.length)} />
+          <Stat
+            label="Tamamlanan ders"
+            value={`${realProgress.completed}/${realProgress.total}`}
+            accent
+          />
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* sınıflar */}
           <section className="lg:col-span-2">
-            <h2 className="mb-3 font-display text-lg font-bold tracking-tightest text-ink dark:text-[#EAF1EF]">
-              Sınıflar
-            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="font-display text-lg font-bold tracking-tightest text-ink dark:text-[#EAF1EF]">
+                Sınıflar
+              </h2>
+              <span className="rounded-full bg-sand px-2 py-0.5 text-[10px] font-semibold text-muted dark:bg-[#142824]">
+                örnek veri
+              </span>
+            </div>
             <div className="overflow-hidden rounded-2xl border border-line dark:border-[#21342F]">
               {CLASSES.map((c, i) => (
                 <div
@@ -119,19 +140,39 @@ export default function SchoolDashboard() {
                 Bir kademeyi seçip tüm sınıflara tek dokunuşla içerik atayın.
               </p>
               <div className="mt-4 flex flex-col gap-2">
-                {STAGE_KEYS.slice(0, 4).map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    className="flex items-center justify-between rounded-xl border border-line px-3.5 py-2.5 text-left text-[13px] font-medium text-ink transition-colors hover:border-forest/40 hover:bg-sand dark:border-[#21342F] dark:text-[#EAF1EF] dark:hover:bg-[#142824]"
-                  >
-                    {k}
-                    <span className="text-[11px] font-semibold text-tea">
-                      Dağıt →
-                    </span>
-                  </button>
-                ))}
+                {STAGE_KEYS.slice(0, 4).map((k) => {
+                  const on = distributed.includes(k);
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() =>
+                        setDistributed((prev) =>
+                          prev.includes(k)
+                            ? prev.filter((x) => x !== k)
+                            : [...prev, k],
+                        )
+                      }
+                      aria-pressed={on}
+                      className={`flex items-center justify-between rounded-xl border px-3.5 py-2.5 text-left text-[13px] font-medium transition-colors ${
+                        on
+                          ? "border-forest bg-[#EFF4F2] text-forest dark:border-[#34D0B6] dark:bg-[#142824] dark:text-[#34D0B6]"
+                          : "border-line text-ink hover:border-forest/40 hover:bg-sand dark:border-[#21342F] dark:text-[#EAF1EF] dark:hover:bg-[#142824]"
+                      }`}
+                    >
+                      {k}
+                      <span className="text-[11px] font-semibold text-tea">
+                        {on ? "✓ Dağıtıldı" : "Dağıt →"}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+              {distributed.length > 0 && (
+                <p className="mt-3 rounded-lg bg-[#EFF4F2] px-3 py-2 text-[11.5px] text-[#2A4A45] dark:bg-[#142824] dark:text-[#9BE3C9]">
+                  {distributed.length} kademe tüm sınıflara dağıtıma işaretlendi. (Demo: gerçek dağıtım, okul hesabı bağlandığında etkinleşir.)
+                </p>
+              )}
             </div>
 
             {/* markanın kalbi: bağış havuzu */}
