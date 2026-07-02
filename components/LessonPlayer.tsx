@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import PikoMascot from "./PikoMascot";
 
 /**
  * DUYUSAL ANLATIM KATMANI — üretilen dersi yaşa göre çok-duyusal deneyime çevirir.
@@ -199,9 +200,7 @@ export default function LessonPlayer({
   if (finished) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-forest to-forest-600 px-6 text-center">
-        <div className="text-[80px]" aria-hidden>
-          🎉
-        </div>
+        <PikoMascot talking wave size={150} />
         <h2 className="mt-4 font-display text-[clamp(28px,5vw,44px)] font-bold tracking-tightest text-paper">
           Aferin! Dersi bitirdin
         </h2>
@@ -281,21 +280,28 @@ export default function LessonPlayer({
         </div>
 
         {/* dev kart */}
-        <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+        <div className="relative flex flex-1 flex-col items-center justify-center px-8 text-center">
+          {/* gökkuşağı sihir girdabı — Piko konuşurken döner */}
           <div
-            key={i}
-            className="text-[72px]"
-            style={{
-              animation: speaking
-                ? "puTalk 0.5s ease-in-out infinite"
-                : "puKenBurns 6s ease-out both",
-              transformOrigin: "center bottom",
-            }}
             aria-hidden
-          >
-            {CARD_EMOJI[i % CARD_EMOJI.length]}
+            style={{
+              position: "absolute",
+              top: "14%",
+              width: 240,
+              height: 240,
+              borderRadius: "50%",
+              background:
+                "conic-gradient(#E0463A,#E8963C,#EBD24A,#3FA96A,#2E86C1,#7E57C2,#E0463A)",
+              filter: "blur(30px)",
+              opacity: speaking ? 0.5 : 0.28,
+              animation: "pikoSwirl 9s linear infinite",
+              transition: "opacity .4s",
+            }}
+          />
+          <div key={i} style={{ animation: "puKenBurns 6s ease-out both", zIndex: 1 }}>
+            <PikoMascot talking={speaking} size={168} />
           </div>
-          <p className="mt-6 max-w-2xl font-display text-[clamp(24px,4.5vw,40px)] font-bold leading-[1.25] tracking-tightest text-[#15211F]">
+          <p className="relative z-[1] mt-4 max-w-2xl font-display text-[clamp(24px,4.5vw,40px)] font-bold leading-[1.25] tracking-tightest text-[#15211F]">
             <Karaoke text={seg} upTo={spoken} />
           </p>
           <button
