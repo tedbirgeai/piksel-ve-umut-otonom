@@ -11,6 +11,7 @@ import {
   progressStats,
 } from "@/lib/progress";
 import { useRole } from "./RoleProvider";
+import LessonPlayer from "./LessonPlayer";
 import PixelMark from "./PixelMark";
 import type { Lesson } from "@/lib/types";
 
@@ -205,6 +206,9 @@ function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
   const [body, setBody] = useState<string>(lesson.body || "");
   const [loading, setLoading] = useState<boolean>(!lesson.body && !!lesson.cid);
   const [done, setDone] = useState<boolean>(isCompleted(lesson.id));
+  const [playing, setPlaying] = useState(false);
+
+  const young = /Kreş|İlkokul/.test(lesson.grade || "");
 
   useEffect(() => {
     if (lesson.body || !lesson.cid) return;
@@ -224,6 +228,21 @@ function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
       alive = false;
     };
   }, [lesson]);
+
+  if (playing) {
+    return (
+      <LessonPlayer
+        title={lesson.title}
+        body={body || lesson.title}
+        young={young}
+        onClose={() => setPlaying(false)}
+        onComplete={() => {
+          if (!isCompleted(lesson.id)) toggleCompleted(lesson.id);
+          setDone(true);
+        }}
+      />
+    );
+  }
   return (
     <div className="min-h-[calc(100vh-58px)] bg-paper dark:bg-[#0C1614]">
       <div className="mx-auto max-w-2xl px-6 py-9">
@@ -246,9 +265,21 @@ function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
           {lesson.title}
         </h1>
 
-        <div className="mt-6 flex items-center gap-3 border-y border-line py-3 dark:border-[#21342F]">
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-y border-line py-3 dark:border-[#21342F]">
+          <button
+            type="button"
+            onClick={() => setPlaying(true)}
+            disabled={loading}
+            className="flex items-center gap-2 rounded-xl bg-hope px-4 py-2.5 text-[14px] font-bold text-hope-ink transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {young ? "▶ Hikâye Modu (sesli & renkli)" : "▶ Anlatım Modu (sesli)"}
+          </button>
           <SpeakButton text={body || lesson.title} />
-          <span className="text-[12px] text-muted">Sesli dinle</span>
+          <span className="text-[12px] text-muted">
+            {young
+              ? "Küçükler için tek tek, sesli ve renkli anlatım"
+              : "Bölüm bölüm sesli anlatım"}
+          </span>
         </div>
 
         <article className="mt-6 whitespace-pre-wrap text-[15.5px] leading-[1.75] text-ink/90 dark:text-[#DCE7E4]">
