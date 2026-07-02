@@ -1,0 +1,76 @@
+{
+  "version": "2026.07-piksel-hikayeleri-v1",
+  "_aciklama": "PİKSEL HİKAYELERİ — el yazımı, kalite kontrollü 5 bölümlük başlangıç serisi. Ders üretiminden (YZ, anlık) AYRI bir kategoridir: öğretmen bunları seçer ve 'Yayınla' der; öğrenci canlı sahneli/sesli/müzikli 'çizgi film' olarak izler. Ödül token DEĞİL, rozet/yıldızdır (mimari kararımıza uygun, cüzdansız).",
+  "episodes": [
+    {
+      "id": "piksel-01",
+      "title": "Tanışma ve İlk Küp",
+      "stage": "Kreş",
+      "theme": "Geometrik şekilleri tanıma",
+      "badge": "İlk Tanışma",
+      "beats": [
+        { "text": "Merhaba! Ben Piksel. Bugün seninle çok güzel bir oyun oynayacağız.", "object": "star" },
+        { "text": "Bak, elimde küçük bir küp var. Küpün her yanı düz ve köşeli.", "object": "shapes" },
+        { "text": "Küpü çevirdikçe hep aynı şekli görürsün. Hadi sen de evindeki küp gibi eşyaları bul.", "object": "shapes" },
+        { "text": "Bir zar, bir kutu... hepsi küpe benzer değil mi?", "object": "shapes" },
+        { "text": "Peki evinde küpe benzeyen bir şey bulabilir misin? Etrafına bak bakalım!", "object": "star" }
+      ]
+    },
+    {
+      "id": "piksel-02",
+      "title": "Şekiller Ülkesi",
+      "stage": "Kreş",
+      "theme": "Temel geometrik şekiller",
+      "badge": "Şekil Kaşifi",
+      "beats": [
+        { "text": "Şimdi seni büyülü bir yere götürüyorum: Şekiller Ülkesi!", "object": "star" },
+        { "text": "Burada yuvarlak bir daire yaşar. Hiç köşesi yoktur, top gibi yuvarlanır.", "object": "shapes" },
+        { "text": "Şurada da üç köşeli bir üçgen var. Bir dağın tepesi gibi sivridir.", "object": "shapes" },
+        { "text": "Ve dört köşeli kare, tıpkı bir pencere gibi eşit kenarlıdır.", "object": "shapes" },
+        { "text": "Haydi şimdi etrafında bir daire, bir üçgen ve bir kare bulmaya çalış!", "object": "shapes" }
+      ]
+    },
+    {
+      "id": "piksel-03",
+      "title": "Renklerin Senfonisi",
+      "stage": "Kreş",
+      "theme": "Renkleri tanıma ve karıştırma",
+      "badge": "Renk Ustası",
+      "beats": [
+        { "text": "Bugün benimle birlikte renklerin dünyasına yolculuk yapacaksın.", "object": "palette" },
+        { "text": "Kırmızı, sıcacık bir renktir — güneşin batışı gibi.", "object": "palette" },
+        { "text": "Mavi, gökyüzü ve deniz gibi ferahlatıcıdır.", "object": "palette" },
+        { "text": "Sarıyı kırmızıyla karıştırırsak ne olur dersin? Turuncu ortaya çıkar!", "object": "palette" },
+        { "text": "Şimdi sen de evindeki eşyaların renklerini say bakalım.", "object": "palette" }
+      ]
+    },
+    {
+      "id": "piksel-04",
+      "title": "Nezaket Kelimeleri",
+      "stage": "Kreş",
+      "theme": "Nezaket ve görgü kuralları",
+      "badge": "Nazik Kalp",
+      "beats": [
+        { "text": "Bugün seninle çok özel kelimeler öğreneceğiz — büyülü kelimeler!", "object": "heart" },
+        { "text": "Birinden bir şey istediğinde 'Lütfen' dersen, sözün daha da güzel olur.", "object": "heart" },
+        { "text": "Biri sana yardım ettiğinde 'Teşekkür ederim' demeyi unutma.", "object": "heart" },
+        { "text": "Yanlışlıkla birine çarparsan 'Özür dilerim' demek de çok kıymetlidir.", "object": "heart" },
+        { "text": "Haydi şimdi bu üç büyülü kelimeyi birlikte tekrar edelim!", "object": "heart" }
+      ]
+    },
+    {
+      "id": "piksel-05",
+      "title": "Sabırlı Küçük Filiz",
+      "stage": "Kreş",
+      "theme": "Sabır ve doğa sevgisi",
+      "badge": "Sabır Tohumu",
+      "beats": [
+        { "text": "Bir küçük tohum vardı. Toprağın içinde uykuya dalmıştı.", "object": "flask" },
+        { "text": "Her gün ona biraz su verdik ve güneşin ona dokunmasını sağladık.", "object": "flask" },
+        { "text": "Tohum hemen filiz olmadı — beklemek gerekti, sabırla beklemek.", "object": "heart" },
+        { "text": "Günler geçti, ve bir sabah küçük yeşil bir filiz topraktan başını uzattı!", "object": "flask" },
+        { "text": "Demek ki bazı güzel şeyler için sabırla beklemek gerekiyor. Sen neyi sabırla bekliyorsun?", "object": "heart" }
+      ]
+    }
+  ]
+}

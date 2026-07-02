@@ -1,54 +1,54 @@
 # Piksel Stüdyo — Video Yol Haritası (3 Seviye)
 
-> Piko'nun başrolde olduğu öğretici-eğlenceli içerik stratejisi.
+> Piksel karakteri'nun başrolde olduğu öğretici-eğlenceli içerik stratejisi.
 > Amaç: amatör "metin + nesne" seviyesinden, dünya standardı bir animasyon
 > markasına geçiş — her seviye farklı yatırım, farklı zaman.
 
 ---
 
 ## Seviye 1 — Otomatik Canlı Anlatım (TAMAMLANDI ✅)
-**Ne:** Her ders anında, Piko'nun sesli-oyunlaştırılmış anlatımıyla sahnelere
+**Ne:** Her ders anında, Piksel karakteri'nun sesli-oyunlaştırılmış anlatımıyla sahnelere
 dönüşür (sahne yönetmeni + nesne kütüphanesi + karaoke altyazı + fon müziği).
 **Güç:** Sonsuz, ücretsiz, çevrimdışı, her ders için otomatik.
 **Sınır:** "Açıklayıcı grafik" tavanı — çizgi film değil. Paylaşım uygulama içi
 değildir (kaldırıldı); dağıtım Seviye 3'ün işidir.
-**Durum:** Yayında. `LessonPlayer` + `sceneDirector` + `SceneObject` + `PikoMascot`.
+**Durum:** Yayında. `LessonPlayer` + `sceneDirector` + `SceneObject` + `Piksel karakteriMascot`.
 
 ---
 
-## Seviye 2 — Kuklalanmış (Rigged) Piko (BAŞLADI 🔧)
-**Ne:** Piko bir "kukla" gibi poz verir: işaret eder (intro), düşünür (quiz),
+## Seviye 2 — Kuklalanmış (Rigged) Piksel karakteri (BAŞLADI 🔧)
+**Ne:** Piksel karakteri bir "kukla" gibi poz verir: işaret eder (intro), düşünür (quiz),
 kutlar (outro), konuşur (dudak senkronu). Duolingo'nun Duo'su ile aynı yaklaşım.
-**Bu pakette:** Piko'ya `pose` sistemi eklendi (SVG/CSS ile — bağımlılıksız).
-**Üretim yükseltmesi (önerilen):** Profesyonel his için Piko'yu **Rive** veya
+**Bu pakette:** Piksel karakteri'ya `pose` sistemi eklendi (SVG/CSS ile — bağımlılıksız).
+**Üretim yükseltmesi (önerilen):** Profesyonel his için Piksel karakteri'yu **Rive** veya
 **Lottie** ile yeniden rig'leyin:
 - Bir kez: karakter iskeleti + ifade/jest kütüphanesi (mutlu, şaşkın, düşünen,
   alkış, dudak-senkron) bir tasarımcı tarafından hazırlanır.
 - Kod: `@rive-app/react-canvas` veya `lottie-react` ile durum makinesi sürülür;
-  sahne türü → Piko ifadesi. Uygulama içi, çevrimdışı çalışır.
+  sahne türü → Piksel karakteri ifadesi. Uygulama içi, çevrimdışı çalışır.
 - Maliyet: tek seferlik rig + animasyon; sonra sonsuz kullanım (sıfır marjinal).
 **Neden:** Sevilen bir maskot = tutundurma + marka. Duolingo bunu kanıtladı.
 
 ---
 
-## Seviye 3 — Piko Çizgi Film Dizisi (PRODÜKSİYON YOL HARİTASI)
-**Ne:** Piko'nun başrolde olduğu, 100–200 bölümlük öğretici-eğlenceli animasyon
-dizisi. "Piko'nun başrol olduğu Türkçe eğitim Netflix'i."
+## Seviye 3 — Piksel karakteri Çizgi Film Dizisi (PRODÜKSİYON YOL HARİTASI)
+**Ne:** Piksel karakteri'nun başrolde olduğu, 100–200 bölümlük öğretici-eğlenceli animasyon
+dizisi. "Piksel karakteri'nun başrol olduğu Türkçe eğitim Netflix'i."
 **Kritik gerçek:** Bu bir **içerik/prodüksiyon işidir, kod özelliği değil.**
 Bölüm başına gerçek emek/bütçe ister. Ama bir kez üretilince **kütüphane varlığı**
 olur (üret bir kez, sonsuz izlensin) — birikim hendeği.
 
 ### Prodüksiyon hattı (öneri)
 1. **Senaryo kütüphanesi** — Müfredat kazanımlarına bağlı 100–200 bölüm fikri.
-   Her bölüm: bir kazanım + Piko'nun macerası + 3–5 dk süre. (Metin şablonu:
+   Her bölüm: bir kazanım + Piksel karakteri'nun macerası + 3–5 dk süre. (Metin şablonu:
    açılış kancası → problem → keşif → çözüm → özet → şarkı.)
-2. **Storyboard + ses** — profesyonel Türkçe seslendirme (Piko'nun kalıcı sesi).
+2. **Storyboard + ses** — profesyonel Türkçe seslendirme (Piksel karakteri'nun kalıcı sesi).
 3. **Animasyon üretimi** — iki yol:
    - **Stüdyo/animatör** (en yüksek kalite, en yüksek maliyet), veya
    - **Üst düzey YZ video** (Sora / Kling / Runway) + insan kurgusu (hızlı,
      orta maliyet). Not: bu YZ araçları buluttur; yalnızca **üretim aşamasında**
      kullanılır — son ürün video dosyasıdır, uygulamada çevrimdışı oynar.
-4. **Kurgu + müzik + marka** — jenerik, Piko teması, tutarlı görsel dil.
+4. **Kurgu + müzik + marka** — jenerik, Piksel karakteri teması, tutarlı görsel dil.
 5. **Dağıtım (izleme rekoru burada):**
    - **YouTube / TikTok / Instagram Reels** — organik erişim, marka bilinirliği.
    - **Uygulama içi PWA kütüphanesi** — çevrimdışı izleme (bağlantısız bölge kozu).

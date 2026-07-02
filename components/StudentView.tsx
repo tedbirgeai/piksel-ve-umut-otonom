@@ -14,6 +14,11 @@ import { useRole } from "./RoleProvider";
 import LessonPlayer from "./LessonPlayer";
 import PixelMark from "./PixelMark";
 import type { Lesson } from "@/lib/types";
+import {
+  getPublishedStories,
+  episodeToScenes,
+  type StoryEpisode,
+} from "@/lib/storyLibrary";
 
 /**
  * ÖĞRENCİ GÖRÜNÜMÜ — tamamen cüzdansız, çevrimdışı dostu.
@@ -26,6 +31,8 @@ export default function StudentView() {
   const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState<string>("Hepsi");
   const [open, setOpen] = useState<Lesson | null>(null);
+  const [openStory, setOpenStory] = useState<StoryEpisode | null>(null);
+  const stories = useMemo(() => getPublishedStories(), []);
 
   useEffect(() => {
     let alive = true;
@@ -53,6 +60,19 @@ export default function StudentView() {
 
   if (open) {
     return <Reader lesson={open} onBack={() => setOpen(null)} />;
+  }
+  if (openStory) {
+    return (
+      <LessonPlayer
+        title={openStory.title}
+        body=""
+        young
+        scenes={episodeToScenes(openStory)}
+        badge={openStory.badge}
+        onClose={() => setOpenStory(null)}
+        onComplete={() => {}}
+      />
+    );
   }
   return (
     <div className="min-h-[calc(100vh-58px)] bg-paper dark:bg-[#0C1614]">
@@ -141,6 +161,44 @@ export default function StudentView() {
             <strong>ücretsiz</strong>. Öğrenmek herkesin hakkı.
           </p>
         </div>
+
+        {/* PİKSEL HİKAYELERİ — öğretmenin yayınladığı, canlı çizgi film bölümler */}
+        {stories.length > 0 && (
+          <div className="mt-6">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-lg">🎬</span>
+              <h2 className="font-display text-lg font-bold tracking-tightest text-ink dark:text-[#EAF1EF]">
+                Piksel Hikayeleri
+              </h2>
+              <span className="rounded-full bg-hope-soft px-2 py-0.5 text-[10px] font-semibold text-hope-ink dark:bg-[#2A2415] dark:text-[#F4C781]">
+                Öğretmenin seçtiği bölümler
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {stories.map((ep) => (
+                <button
+                  key={ep.id}
+                  type="button"
+                  onClick={() => setOpenStory(ep)}
+                  className="group flex flex-col rounded-2xl border-2 border-hope/30 bg-gradient-to-br from-white to-hope-soft/40 p-5 text-left transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_-26px_rgba(232,155,60,0.5)] dark:border-[#3A2F16] dark:from-[#10201D] dark:to-[#211B0E]"
+                >
+                  <span className="w-fit rounded-md bg-hope px-2 py-0.5 text-[11px] font-bold text-hope-ink">
+                    {ep.stage}
+                  </span>
+                  <h3 className="mt-3 font-display text-[17px] font-semibold leading-snug tracking-tightest text-ink dark:text-[#EAF1EF]">
+                    {ep.title}
+                  </h3>
+                  <p className="mt-2 flex-1 text-[13px] leading-relaxed text-muted">
+                    {ep.theme}
+                  </p>
+                  <span className="mt-4 flex items-center gap-1.5 text-[13px] font-semibold text-hope-ink">
+                    ▶ İzle <span className="transition-transform group-hover:translate-x-1">→</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* kütüphane */}
         {loading ? (

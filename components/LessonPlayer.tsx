@@ -2,17 +2,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import PikoMascot from "./PikoMascot";
+import PikselMascot from "./PikselMascot";
 import SceneObject from "./SceneObject";
 import { buildScenes, SCENE_BG, type Scene } from "@/lib/sceneDirector";
 
 /**
  * PİKSEL STÜDYO — gerçek eğitim videosu motoru (canlı, çevrimdışı, sıfır maliyet).
  *
- * Katmanlar:  arka plan → gökkuşağı sihir → sahne nesnesi (hareketli) → Piko
- *             (konuşan maskot) → karaoke altyazı → efekt.
+ * Katmanlar:  arka plan → gökkuşağı sihir → sahne nesnesi (hareketli) → Piksel karakteri
+ *             (konuşan karakter) → karaoke altyazı → efekt.
  * Zaman çizelgesi: sahneler anlatım sesiyle senkron otomatik ilerler.
- * Ses: Piko anlatımı (Web Speech) + yumuşak fon müziği (Web Audio, kapatılabilir).
+ * Ses: Piksel karakteri anlatımı (Web Speech) + yumuşak fon müziği (Web Audio, kapatılabilir).
  * Paylaşım: "Videoyu Kaydet" — tarayıcı ekran kaydıyla .webm dosyası üretir.
  */
 export default function LessonPlayer({
@@ -20,6 +20,8 @@ export default function LessonPlayer({
   body,
   subject = "",
   young,
+  scenes: providedScenes,
+  badge,
   onClose,
   onComplete,
 }: {
@@ -27,12 +29,14 @@ export default function LessonPlayer({
   body: string;
   subject?: string;
   young: boolean;
+  scenes?: Scene[]; // verilirse (PİKSEL HİKAYELERİ) buildScenes atlanır
+  badge?: string; // kutlama ekranında gösterilecek rozet adı
   onClose: () => void;
   onComplete: () => void;
 }) {
   const scenes = useMemo<Scene[]>(
-    () => buildScenes(title, body, subject),
-    [title, body, subject],
+    () => providedScenes ?? buildScenes(title, body, subject),
+    [providedScenes, title, body, subject],
   );
 
   const [i, setI] = useState(0);
@@ -184,10 +188,15 @@ export default function LessonPlayer({
   if (finished) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-forest to-forest-600 px-6 text-center">
-        <PikoMascot talking wave size={150} />
+        <PikselMascot talking wave size={150} />
         <h2 className="mt-4 font-display text-[clamp(28px,5vw,44px)] font-bold tracking-tightest text-paper">
           Aferin! Dersi bitirdin
         </h2>
+        {badge && (
+          <span className="mt-2 rounded-full bg-hope px-4 py-1.5 text-[13px] font-bold text-hope-ink">
+            🏅 Yeni rozet: {badge}
+          </span>
+        )}
         <div className="mt-3 flex gap-1.5" aria-hidden>
           {[0, 1, 2].map((s) => (
             <span key={s} className="text-[32px]">⭐</span>
@@ -272,7 +281,7 @@ export default function LessonPlayer({
             background: "conic-gradient(#E0463A,#E8963C,#EBD24A,#3FA96A,#2E86C1,#7E57C2,#E0463A)",
             filter: "blur(46px)",
             opacity: speaking ? 0.45 : 0.24,
-            animation: "pikoSwirl 9s linear infinite",
+            animation: "pikselSwirl 9s linear infinite",
             transition: "opacity .4s",
           }}
         />
@@ -282,9 +291,9 @@ export default function LessonPlayer({
           <SceneObject name={scene?.object ?? "star"} size={young ? 150 : 120} />
         </div>
 
-        {/* Piko + altyazı */}
+        {/* Piksel karakteri + altyazı */}
         <div className="relative z-[1] mt-2 flex items-end gap-3">
-          <PikoMascot
+          <PikselMascot
             talking={speaking}
             size={young ? 110 : 92}
             pose={

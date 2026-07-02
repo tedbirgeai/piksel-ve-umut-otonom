@@ -15,6 +15,7 @@ import { useLibrary } from "./LibraryProvider";
 import { useTheme } from "./ThemeProvider";
 import { useRole } from "./RoleProvider";
 import ReputationPanel from "./ReputationPanel";
+import { STORY_EPISODES, isStoryPublished, toggleStoryPublish } from "@/lib/storyLibrary";
 
 /**
  * Otonom Kontrol Merkezi:
@@ -37,6 +38,7 @@ export default function Sidebar({
   const publicClient = usePublicClient();
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawMsg, setWithdrawMsg] = useState<string | null>(null);
+  const [, forceTick] = useState(0); // yayın durumu değişince yeniden çiz
 
   const onChainCount = lessons.filter((l) => l.onChain).length;
 
@@ -164,10 +166,39 @@ export default function Sidebar({
           </div>
         )}
 
-        <SectionTitle>Aktif Projeler</SectionTitle>
+        <SectionTitle>🎬 Piksel Hikayeleri</SectionTitle>
+        <p className="px-1.5 pb-2 text-[11.5px] leading-relaxed text-muted">
+          El yazımı, kalite kontrollü bölümler. Yayınladığın bölüm öğrencinin
+          kütüphanesinde canlı çizgi film olarak oynar.
+        </p>
         <div className="flex flex-col gap-1.5">
-          <ProjectRow name="Fen Müfredatı 6" status="üretiliyor" tone="tea" />
-          <ProjectRow name="Tarih Seti 8" status="denetimde" tone="hope" />
+          {STORY_EPISODES.map((ep) => {
+            const on = isStoryPublished(ep.id);
+            return (
+              <div
+                key={ep.id}
+                className="flex items-center justify-between gap-2 rounded-lg border border-line bg-white px-2.5 py-2 dark:border-[#21342F] dark:bg-[#142824]"
+              >
+                <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink dark:text-[#EAF1EF]">
+                  {ep.title}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleStoryPublish(ep.id);
+                    forceTick((n) => n + 1);
+                  }}
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[10.5px] font-semibold transition-colors ${
+                    on
+                      ? "bg-forest text-paper dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
+                      : "bg-sand text-tea dark:bg-[#0C1614]"
+                  }`}
+                >
+                  {on ? "● Yayında" : "Yayınla"}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -222,31 +253,6 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="px-1.5 pb-1.5 pt-4 font-mono text-[10.5px] uppercase tracking-wider text-faint dark:text-[#5E726D]">
       {children}
-    </div>
-  );
-}
-
-function ProjectRow({
-  name,
-  status,
-  tone,
-}: {
-  name: string;
-  status: string;
-  tone: "tea" | "hope";
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-line bg-white px-2.5 py-2 dark:border-[#21342F] dark:bg-[#142824]">
-      <span className="text-[12.5px] text-ink dark:text-[#EAF1EF]">{name}</span>
-      <span
-        className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${
-          tone === "tea"
-            ? "bg-sand text-tea dark:bg-[#0C1614]"
-            : "bg-hope-soft text-hope-ink dark:bg-[#2A2415] dark:text-[#F4C781]"
-        }`}
-      >
-        {status}
-      </span>
     </div>
   );
 }

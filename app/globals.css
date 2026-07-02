@@ -88,25 +88,25 @@
     }
   }
 
-  /* PİKO maskot animasyonları */
-  @keyframes pikoFloat {
+  /* PİKSEL karakteri animasyonları */
+  @keyframes pikselFloat {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-7px); }
   }
-  @keyframes pikoHop {
+  @keyframes pikselHop {
     0%, 100% { transform: translateY(0) scale(1); }
     50% { transform: translateY(-10px) scale(1.04); }
   }
-  @keyframes pikoWave {
+  @keyframes pikselWave {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(-26deg); }
   }
-  @keyframes pikoArm {
+  @keyframes pikselArm {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(-12deg); }
   }
   /* Gökkuşağı sihir girdabı (sahne dekoru) */
-  @keyframes pikoSwirl {
+  @keyframes pikselSwirl {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
