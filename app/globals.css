@@ -66,6 +66,18 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Sinema Modu — Ken Burns yakınlaşma/kayma animasyonu */
+  @keyframes puKenBurns {
+    from {
+      transform: scale(0.82) translateY(6px);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1.12) translateY(-6px);
+      opacity: 1;
+    }
+  }
+
   body {
     background-color: var(--color-paper);
     color: var(--color-ink);

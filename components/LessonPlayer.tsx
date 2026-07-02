@@ -57,7 +57,9 @@ export default function LessonPlayer({
   const [finished, setFinished] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [auto, setAuto] = useState(false);
   const mutedRef = useRef(false);
+  const autoRef = useRef(false);
 
   const atEnd = i >= segments.length - 1;
 
@@ -75,9 +77,9 @@ export default function LessonPlayer({
     window.speechSynthesis.speak(u);
   }
 
-  // Kart değişince otomatik anlat
+  // Kart değişince otomatik anlat (elle gezinme modunda)
   useEffect(() => {
-    if (!finished && segments[i]) speak(segments[i]);
+    if (!auto && !finished && segments[i]) speak(segments[i]);
     return () => {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
@@ -85,6 +87,61 @@ export default function LessonPlayer({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i, finished]);
+
+  // SİNEMA MODU — otomatik oynatma: anlat → ses bitince ilerle → sonda kutlama
+  useEffect(() => {
+    if (!auto || finished) return;
+    const seg = segments[i];
+    if (!seg) return;
+    let cancelled = false;
+    const advance = () => {
+      if (cancelled) return;
+      if (atEnd) {
+        setFinished(true);
+        onComplete();
+      } else {
+        setI((n) => n + 1);
+      }
+    };
+    if (!mutedRef.current && typeof window !== "undefined" && "speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(seg);
+      u.lang = "tr-TR";
+      u.rate = young ? 0.9 : 1;
+      u.onstart = () => setSpeaking(true);
+      u.onend = () => {
+        setSpeaking(false);
+        if (!cancelled) setTimeout(advance, young ? 700 : 400);
+      };
+      u.onerror = () => {
+        setSpeaking(false);
+        if (!cancelled) setTimeout(advance, 1500);
+      };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+      return () => {
+        cancelled = true;
+        window.speechSynthesis.cancel();
+      };
+    }
+    // sessiz: metin uzunluğuna göre süre
+    const ms = Math.max(2600, seg.length * 85);
+    const t = setTimeout(advance, ms);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, i, finished]);
+
+  function toggleAuto() {
+    const a = !auto;
+    setAuto(a);
+    autoRef.current = a;
+    if (!a && typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+    }
+  }
 
   function next() {
     if (atEnd) {
@@ -194,19 +251,34 @@ export default function LessonPlayer({
               />
             ))}
           </div>
-          <button
-            type="button"
-            onClick={toggleMute}
-            aria-label={muted ? "Sesi aç" : "Sesi kapat"}
-            className="grid h-11 w-11 place-items-center rounded-full bg-white/70 text-[18px] text-forest"
-          >
-            {muted ? "🔇" : speaking ? "🔊" : "🔈"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleAuto}
+              aria-label={auto ? "Duraklat" : "Otomatik oynat"}
+              className="grid h-11 w-11 place-items-center rounded-full bg-forest text-[18px] text-paper"
+            >
+              {auto ? "⏸" : "▶"}
+            </button>
+            <button
+              type="button"
+              onClick={toggleMute}
+              aria-label={muted ? "Sesi aç" : "Sesi kapat"}
+              className="grid h-11 w-11 place-items-center rounded-full bg-white/70 text-[18px] text-forest"
+            >
+              {muted ? "🔇" : speaking ? "🔊" : "🔈"}
+            </button>
+          </div>
         </div>
 
         {/* dev kart */}
         <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-          <div className="text-[72px]" aria-hidden>
+          <div
+            key={i}
+            className="text-[72px]"
+            style={{ animation: "puKenBurns 6s ease-out both" }}
+            aria-hidden
+          >
             {CARD_EMOJI[i % CARD_EMOJI.length]}
           </div>
           <p className="mt-6 max-w-2xl font-display text-[clamp(24px,4.5vw,40px)] font-bold leading-[1.25] tracking-tightest text-[#15211F]">
@@ -258,14 +330,24 @@ export default function LessonPlayer({
         <span className="truncate px-4 font-display text-[15px] font-bold tracking-tightest text-forest dark:text-[#34D0B6]">
           {title}
         </span>
-        <button
-          type="button"
-          onClick={toggleMute}
-          aria-label={muted ? "Sesi aç" : "Sesi kapat"}
-          className="grid h-10 w-10 place-items-center rounded-xl border border-line text-forest dark:border-[#21342F] dark:text-[#34D0B6]"
-        >
-          {muted ? "🔇" : speaking ? "🔊" : "🔈"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleAuto}
+            aria-label={auto ? "Duraklat" : "Otomatik oynat"}
+            className="flex items-center gap-1.5 rounded-xl bg-forest px-3 py-2 text-[13px] font-bold text-paper dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
+          >
+            {auto ? "⏸ Duraklat" : "▶ Sinema"}
+          </button>
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={muted ? "Sesi aç" : "Sesi kapat"}
+            className="grid h-10 w-10 place-items-center rounded-xl border border-line text-forest dark:border-[#21342F] dark:text-[#34D0B6]"
+          >
+            {muted ? "🔇" : speaking ? "🔊" : "🔈"}
+          </button>
+        </div>
       </div>
 
       {/* ilerleme */}
