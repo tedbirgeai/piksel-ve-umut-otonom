@@ -177,43 +177,8 @@ export default function LessonPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, i]);
 
-  // ---- Video kaydı (tarayıcı ekran kaydı → .webm) ----
-  const [recording, setRecording] = useState(false);
-  async function recordVideo() {
-    try {
-      const media = navigator.mediaDevices as unknown as {
-        getDisplayMedia?: (c: unknown) => Promise<MediaStream>;
-      };
-      if (!media.getDisplayMedia) {
-        alert("Tarayıcınız video kaydını desteklemiyor. Chrome/Edge önerilir.");
-        return;
-      }
-      const stream = await media.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
-      const rec = new MediaRecorder(stream, { mimeType: "video/webm" });
-      const chunks: BlobPart[] = [];
-      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
-      rec.onstop = () => {
-        const blob = new Blob(chunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${title.slice(0, 40) || "piksel-umut-ders"}.webm`;
-        a.click();
-        URL.revokeObjectURL(url);
-        stream.getTracks().forEach((t) => t.stop());
-        setRecording(false);
-      };
-      setRecording(true);
-      setI(0);
-      setFinished(false);
-      setPlaying(true);
-      playingRef.current = true;
-      rec.start();
-      stream.getVideoTracks()[0].onended = () => rec.state !== "inactive" && rec.stop();
-    } catch {
-      setRecording(false);
-    }
-  }
+  // ---- Video kaydı kaldırıldı (Seviye 1 sadeleştirme): paylaşım bir prodüksiyon/
+  // pazarlama iş akışıdır (Seviye 3), uygulama içi düğme değil. Bkz. docs/VIDEO-YOL-HARITASI.md
 
   // ---------- KUTLAMA ----------
   if (finished) {
@@ -319,7 +284,19 @@ export default function LessonPlayer({
 
         {/* Piko + altyazı */}
         <div className="relative z-[1] mt-2 flex items-end gap-3">
-          <PikoMascot talking={speaking} size={young ? 110 : 92} />
+          <PikoMascot
+            talking={speaking}
+            size={young ? 110 : 92}
+            pose={
+              scene?.kind === "intro"
+                ? "point"
+                : scene?.kind === "quiz"
+                  ? "think"
+                  : scene?.kind === "outro"
+                    ? "celebrate"
+                    : "idle"
+            }
+          />
         </div>
         <p
           className={`relative z-[1] mt-4 max-w-2xl font-display font-bold leading-[1.25] tracking-tightest text-[#15211F] ${
@@ -347,15 +324,6 @@ export default function LessonPlayer({
           className="flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-forest text-[18px] font-bold text-paper"
         >
           {playing ? "⏸ Duraklat" : "▶ Oynat"}
-        </button>
-        <button
-          type="button"
-          onClick={recordVideo}
-          disabled={recording}
-          className="flex h-14 items-center gap-2 rounded-full bg-hope px-5 text-[15px] font-bold text-hope-ink disabled:opacity-50"
-          title="Videoyu kaydet ve paylaş (.webm)"
-        >
-          {recording ? "● Kaydediliyor" : "🎬 Video"}
         </button>
         <button
           type="button"

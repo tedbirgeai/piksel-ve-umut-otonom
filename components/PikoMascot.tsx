@@ -17,10 +17,12 @@ export default function PikoMascot({
   talking = false,
   size = 180,
   wave = false,
+  pose = "idle",
 }: {
   talking?: boolean;
   size?: number;
   wave?: boolean;
+  pose?: "idle" | "point" | "think" | "celebrate";
 }) {
   // Voxel gövde için mavi tonları (konsept görseldeki gibi)
   const C = {
@@ -61,10 +63,16 @@ export default function PikoMascot({
         {/* zemin gölgesi */}
         <ellipse cx="60" cy="123" rx="34" ry="5" fill="#0F3D3A" opacity="0.14" />
 
-        {/* SOL KOL (işaret/sallama) */}
+        {/* SOL KOL (işaret/sallama/poz) */}
         <g
           style={{
             transformOrigin: "38px 78px",
+            transform:
+              pose === "celebrate"
+                ? "rotate(-45deg)"
+                : pose === "think"
+                  ? "rotate(-70deg)"
+                  : "none",
             animation: wave
               ? "pikoWave 1.1s ease-in-out infinite"
               : talking
@@ -76,8 +84,18 @@ export default function PikoMascot({
           <rect x="10" y="66" width="12" height="12" rx="2.5" fill={C.light} />
         </g>
 
-        {/* SAĞ KOL */}
-        <g>
+        {/* SAĞ KOL (poz: işaret / kutlama) */}
+        <g
+          style={{
+            transformOrigin: "96px 80px",
+            transform:
+              pose === "celebrate"
+                ? "rotate(45deg)"
+                : pose === "point"
+                  ? "rotate(-20deg)"
+                  : "none",
+          }}
+        >
           <rect x="90" y="74" width="12" height="12" rx="2.5" fill={C.mid} />
           <rect x="98" y="80" width="12" height="12" rx="2.5" fill={C.dark} />
         </g>
