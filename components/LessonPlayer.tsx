@@ -58,6 +58,7 @@ export default function LessonPlayer({
   const [speaking, setSpeaking] = useState(false);
   const [muted, setMuted] = useState(false);
   const [auto, setAuto] = useState(false);
+  const [spoken, setSpoken] = useState(0); // karaoke: seslendirilen karakter indeksi
   const mutedRef = useRef(false);
   const autoRef = useRef(false);
 
@@ -67,12 +68,17 @@ export default function LessonPlayer({
   function speak(text: string) {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
+    setSpoken(0);
     if (mutedRef.current) return;
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "tr-TR";
     u.rate = young ? 0.9 : 1;
     u.onstart = () => setSpeaking(true);
-    u.onend = () => setSpeaking(false);
+    u.onboundary = (e) => setSpoken(e.charIndex);
+    u.onend = () => {
+      setSpeaking(false);
+      setSpoken(text.length);
+    };
     u.onerror = () => setSpeaking(false);
     window.speechSynthesis.speak(u);
   }
@@ -107,9 +113,12 @@ export default function LessonPlayer({
       const u = new SpeechSynthesisUtterance(seg);
       u.lang = "tr-TR";
       u.rate = young ? 0.9 : 1;
+      setSpoken(0);
       u.onstart = () => setSpeaking(true);
+      u.onboundary = (e) => setSpoken(e.charIndex);
       u.onend = () => {
         setSpeaking(false);
+        setSpoken(seg.length);
         if (!cancelled) setTimeout(advance, young ? 700 : 400);
       };
       u.onerror = () => {
@@ -276,13 +285,18 @@ export default function LessonPlayer({
           <div
             key={i}
             className="text-[72px]"
-            style={{ animation: "puKenBurns 6s ease-out both" }}
+            style={{
+              animation: speaking
+                ? "puTalk 0.5s ease-in-out infinite"
+                : "puKenBurns 6s ease-out both",
+              transformOrigin: "center bottom",
+            }}
             aria-hidden
           >
             {CARD_EMOJI[i % CARD_EMOJI.length]}
           </div>
           <p className="mt-6 max-w-2xl font-display text-[clamp(24px,4.5vw,40px)] font-bold leading-[1.25] tracking-tightest text-[#15211F]">
-            {seg}
+            <Karaoke text={seg} upTo={spoken} />
           </p>
           <button
             type="button"
@@ -364,7 +378,7 @@ export default function LessonPlayer({
             Bölüm {i + 1} / {segments.length}
           </span>
           <p className="mt-4 text-[clamp(18px,2.4vw,24px)] leading-[1.6] text-ink dark:text-[#EAF1EF]">
-            {seg}
+            <Karaoke text={seg} upTo={spoken} />
           </p>
           <button
             type="button"
@@ -394,5 +408,16 @@ export default function LessonPlayer({
         </button>
       </div>
     </div>
+  );
+}
+
+/** Karaoke — seslendirilen kelimeye kadar olan kısmı vurgular (sesle senkron). */
+function Karaoke({ text, upTo }: { text: string; upTo: number }) {
+  if (upTo <= 0 || upTo >= text.length) return <>{text}</>;
+  return (
+    <>
+      <span style={{ color: "#0F3D3A" }}>{text.slice(0, upTo)}</span>
+      <span style={{ opacity: 0.4 }}>{text.slice(upTo)}</span>
+    </>
   );
 }

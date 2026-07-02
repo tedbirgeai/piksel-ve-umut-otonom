@@ -78,6 +78,16 @@
     }
   }
 
+  /* Konuşan karakter — anlatım sırasında zıplama/konuşma animasyonu */
+  @keyframes puTalk {
+    0%, 100% {
+      transform: scale(1) translateY(0) rotate(-2deg);
+    }
+    50% {
+      transform: scale(1.14) translateY(-8px) rotate(2deg);
+    }
+  }
+
   body {
     background-color: var(--color-paper);
     color: var(--color-ink);
