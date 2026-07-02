@@ -1,108 +1,104 @@
 // components/LessonPlayer.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PikoMascot from "./PikoMascot";
+import SceneObject from "./SceneObject";
+import { buildScenes, SCENE_BG, type Scene } from "@/lib/sceneDirector";
 
 /**
- * DUYUSAL ANLATIM KATMANI — üretilen dersi yaşa göre çok-duyusal deneyime çevirir.
+ * PİKSEL STÜDYO — gerçek eğitim videosu motoru (canlı, çevrimdışı, sıfır maliyet).
  *
- * Farklılaştırıcı: Kreş bir çocuk METİN okuyamaz. Aynı içerik kademeye göre
- * FARKLI DUYUSAL BİÇİM alır:
- *   Kreş / İlkokul → "Hikâye Modu": tek seferde bir kart, DEV renkli tipografi,
- *      otomatik sesli anlatım (tr-TR), piksel maskot, her kartta yıldız, sonda kutlama.
- *   Ortaokul+      → yapılandırılmış, bölüm-vurgulu, sesli takipli okuyucu.
- *
- * Tamamen tarayıcıda (Web Speech API), çevrimdışı-uyumlu, cüzdansız, veri toplamaz.
+ * Katmanlar:  arka plan → gökkuşağı sihir → sahne nesnesi (hareketli) → Piko
+ *             (konuşan maskot) → karaoke altyazı → efekt.
+ * Zaman çizelgesi: sahneler anlatım sesiyle senkron otomatik ilerler.
+ * Ses: Piko anlatımı (Web Speech) + yumuşak fon müziği (Web Audio, kapatılabilir).
+ * Paylaşım: "Videoyu Kaydet" — tarayıcı ekran kaydıyla .webm dosyası üretir.
  */
-
-/** Ham ders metnini anlamlı anlatım parçalarına böler. */
-function toSegments(text: string): string[] {
-  return text
-    .replace(/[#*_`>]/g, "") // markdown işaretlerini temizle
-    .split(/\n+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
-    // çok uzun paragrafları cümlelere ayır (küçük yaş için sindirimli)
-    .flatMap((p) =>
-      p.length > 160
-        ? p.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean)
-        : [p],
-    );
-}
-
-// Kart arka planları — sıcak, çocuk dostu, marka paleti
-const CARD_BG = [
-  "linear-gradient(150deg,#FBEFD6,#F6E2BC)",
-  "linear-gradient(150deg,#E7F1EE,#D6E9E2)",
-  "linear-gradient(150deg,#FBE4E0,#F6D4CC)",
-  "linear-gradient(150deg,#E9E7F6,#DAD6EF)",
-];
-const CARD_EMOJI = ["🌟", "🎈", "🦋", "🌈", "🐢", "🍎", "🎨", "🚀"];
-
 export default function LessonPlayer({
   title,
   body,
+  subject = "",
   young,
   onClose,
   onComplete,
 }: {
   title: string;
   body: string;
+  subject?: string;
   young: boolean;
   onClose: () => void;
   onComplete: () => void;
 }) {
-  const segments = useMemo(() => toSegments(body), [body]);
+  const scenes = useMemo<Scene[]>(
+    () => buildScenes(title, body, subject),
+    [title, body, subject],
+  );
+
   const [i, setI] = useState(0);
-  const [finished, setFinished] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
+  const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(false);
-  const [auto, setAuto] = useState(false);
-  const [spoken, setSpoken] = useState(0); // karaoke: seslendirilen karakter indeksi
+  const [music, setMusic] = useState(true);
+  const [spoken, setSpoken] = useState(0);
+  const [speaking, setSpeaking] = useState(false);
+  const [finished, setFinished] = useState(false);
+
   const mutedRef = useRef(false);
-  const autoRef = useRef(false);
+  const playingRef = useRef(true);
+  const scene = scenes[i] ?? scenes[0];
+  const atEnd = i >= scenes.length - 1;
 
-  const atEnd = i >= segments.length - 1;
+  // ---- Fon müziği (Web Audio, yumuşak arpej) ----
+  const audioRef = useRef<{ ctx: AudioContext; gain: GainNode; timer: number } | null>(null);
+  const startMusic = useCallback(() => {
+    if (audioRef.current || typeof window === "undefined") return;
+    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.04;
+    gain.connect(ctx.destination);
+    const notes = [523.25, 587.33, 659.25, 783.99, 659.25, 587.33]; // C D E G E D
+    let n = 0;
+    const tick = () => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.value = notes[n % notes.length];
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+      o.connect(g);
+      g.connect(gain);
+      o.start();
+      o.stop(ctx.currentTime + 0.95);
+      n++;
+    };
+    const timer = window.setInterval(tick, 620);
+    audioRef.current = { ctx, gain, timer };
+  }, []);
+  const stopMusic = useCallback(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    clearInterval(a.timer);
+    a.ctx.close();
+    audioRef.current = null;
+  }, []);
 
-  // Bir parçayı seslendir
-  function speak(text: string) {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
+  useEffect(() => {
+    if (music && !finished) startMusic();
+    else stopMusic();
+    return stopMusic;
+  }, [music, finished, startMusic, stopMusic]);
+
+  // ---- Anlatım + otomatik ilerleme (zaman çizelgesi) ----
+  useEffect(() => {
+    if (finished) return;
+    const seg = scene?.text ?? "";
     setSpoken(0);
-    if (mutedRef.current) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "tr-TR";
-    u.rate = young ? 0.9 : 1;
-    u.onstart = () => setSpeaking(true);
-    u.onboundary = (e) => setSpoken(e.charIndex);
-    u.onend = () => {
-      setSpeaking(false);
-      setSpoken(text.length);
-    };
-    u.onerror = () => setSpeaking(false);
-    window.speechSynthesis.speak(u);
-  }
-
-  // Kart değişince otomatik anlat (elle gezinme modunda)
-  useEffect(() => {
-    if (!auto && !finished && segments[i]) speak(segments[i]);
-    return () => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i, finished]);
-
-  // SİNEMA MODU — otomatik oynatma: anlat → ses bitince ilerle → sonda kutlama
-  useEffect(() => {
-    if (!auto || finished) return;
-    const seg = segments[i];
-    if (!seg) return;
     let cancelled = false;
     const advance = () => {
-      if (cancelled) return;
+      if (cancelled || !playingRef.current) return;
       if (atEnd) {
         setFinished(true);
         onComplete();
@@ -110,22 +106,19 @@ export default function LessonPlayer({
         setI((n) => n + 1);
       }
     };
-    if (!mutedRef.current && typeof window !== "undefined" && "speechSynthesis" in window) {
+    const hasTTS = typeof window !== "undefined" && "speechSynthesis" in window;
+    if (playing && !mutedRef.current && hasTTS) {
       const u = new SpeechSynthesisUtterance(seg);
       u.lang = "tr-TR";
       u.rate = young ? 0.9 : 1;
-      setSpoken(0);
       u.onstart = () => setSpeaking(true);
       u.onboundary = (e) => setSpoken(e.charIndex);
       u.onend = () => {
         setSpeaking(false);
         setSpoken(seg.length);
-        if (!cancelled) setTimeout(advance, young ? 700 : 400);
+        if (!cancelled) setTimeout(advance, young ? 650 : 400);
       };
-      u.onerror = () => {
-        setSpeaking(false);
-        if (!cancelled) setTimeout(advance, 1500);
-      };
+      u.onerror = () => setSpeaking(false);
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
       return () => {
@@ -133,70 +126,96 @@ export default function LessonPlayer({
         window.speechSynthesis.cancel();
       };
     }
-    // sessiz: metin uzunluğuna göre süre
-    const ms = Math.max(2600, seg.length * 85);
-    const t = setTimeout(advance, ms);
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
+    if (playing) {
+      const ms = Math.max(2600, seg.length * 85);
+      const t = setTimeout(advance, ms);
+      return () => {
+        cancelled = true;
+        clearTimeout(t);
+      };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto, i, finished]);
+  }, [i, playing, finished]);
 
-  function toggleAuto() {
-    const a = !auto;
-    setAuto(a);
-    autoRef.current = a;
-    if (!a && typeof window !== "undefined" && "speechSynthesis" in window) {
+  function togglePlay() {
+    const p = !playing;
+    setPlaying(p);
+    playingRef.current = p;
+    if (!p && typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       setSpeaking(false);
     }
-  }
-
-  function next() {
-    if (atEnd) {
-      setFinished(true);
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-      onComplete();
-      return;
-    }
-    setI((n) => n + 1);
-  }
-  function prev() {
-    setI((n) => Math.max(0, n - 1));
   }
   function toggleMute() {
     const m = !muted;
     setMuted(m);
     mutedRef.current = m;
-    if (m && typeof window !== "undefined" && "speechSynthesis" in window) {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
-      setSpeaking(false);
-    } else {
-      speak(segments[i]);
     }
   }
+  function go(delta: number) {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setFinished(false);
+    setI((n) => Math.max(0, Math.min(scenes.length - 1, n + delta)));
+  }
 
-  // Klavye erişimi (WCAG)
+  // ---- Klavye ----
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight" || e.key === " ") {
+      if (e.key === "ArrowRight") go(1);
+      else if (e.key === "ArrowLeft") go(-1);
+      else if (e.key === " ") {
         e.preventDefault();
-        next();
-      } else if (e.key === "ArrowLeft") {
-        prev();
-      } else if (e.key === "Escape") {
-        onClose();
-      }
+        togglePlay();
+      } else if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [atEnd, i]);
+  }, [playing, i]);
 
-  // ---- KUTLAMA EKRANI ----
+  // ---- Video kaydı (tarayıcı ekran kaydı → .webm) ----
+  const [recording, setRecording] = useState(false);
+  async function recordVideo() {
+    try {
+      const media = navigator.mediaDevices as unknown as {
+        getDisplayMedia?: (c: unknown) => Promise<MediaStream>;
+      };
+      if (!media.getDisplayMedia) {
+        alert("Tarayıcınız video kaydını desteklemiyor. Chrome/Edge önerilir.");
+        return;
+      }
+      const stream = await media.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
+      const rec = new MediaRecorder(stream, { mimeType: "video/webm" });
+      const chunks: BlobPart[] = [];
+      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+      rec.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${title.slice(0, 40) || "piksel-umut-ders"}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+        stream.getTracks().forEach((t) => t.stop());
+        setRecording(false);
+      };
+      setRecording(true);
+      setI(0);
+      setFinished(false);
+      setPlaying(true);
+      playingRef.current = true;
+      rec.start();
+      stream.getVideoTracks()[0].onended = () => rec.state !== "inactive" && rec.stop();
+    } catch {
+      setRecording(false);
+    }
+  }
+
+  // ---------- KUTLAMA ----------
   if (finished) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-forest to-forest-600 px-6 text-center">
@@ -206,15 +225,22 @@ export default function LessonPlayer({
         </h2>
         <div className="mt-3 flex gap-1.5" aria-hidden>
           {[0, 1, 2].map((s) => (
-            <span key={s} className="text-[32px]">
-              ⭐
-            </span>
+            <span key={s} className="text-[32px]">⭐</span>
           ))}
         </div>
-        <p className="mt-3 max-w-sm text-[15px] text-paper/80">
-          Harika iş çıkardın. Yeni bir şey öğrendin!
-        </p>
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setI(0);
+              setFinished(false);
+              setPlaying(true);
+              playingRef.current = true;
+            }}
+            className="rounded-xl border border-paper/40 px-6 py-3 text-[15px] font-bold text-paper"
+          >
+            ↻ Tekrar izle
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -227,197 +253,124 @@ export default function LessonPlayer({
     );
   }
 
-  const seg = segments[i] ?? title;
-  const pct = Math.round(((i + 1) / Math.max(1, segments.length)) * 100);
+  const seg = scene?.text ?? title;
 
-  // ---- KREŞ / İLKOKUL: HİKÂYE MODU ----
-  if (young) {
-    return (
-      <div
-        className="fixed inset-0 z-50 flex flex-col"
-        style={{ background: CARD_BG[i % CARD_BG.length] }}
-      >
-        {/* üst bar */}
-        <div className="flex items-center justify-between px-5 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Kapat"
-            className="grid h-11 w-11 place-items-center rounded-full bg-white/70 text-[20px] text-forest"
-          >
-            ←
-          </button>
-          <div className="flex items-center gap-1" aria-hidden>
-            {segments.map((_, idx) => (
-              <span
-                key={idx}
-                className="h-2.5 rounded-full transition-all"
-                style={{
-                  width: idx === i ? 22 : 9,
-                  background: idx <= i ? "#0F3D3A" : "rgba(15,61,58,0.2)",
-                }}
-              />
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleAuto}
-              aria-label={auto ? "Duraklat" : "Otomatik oynat"}
-              className="grid h-11 w-11 place-items-center rounded-full bg-forest text-[18px] text-paper"
-            >
-              {auto ? "⏸" : "▶"}
-            </button>
-            <button
-              type="button"
-              onClick={toggleMute}
-              aria-label={muted ? "Sesi aç" : "Sesi kapat"}
-              className="grid h-11 w-11 place-items-center rounded-full bg-white/70 text-[18px] text-forest"
-            >
-              {muted ? "🔇" : speaking ? "🔊" : "🔈"}
-            </button>
-          </div>
-        </div>
-
-        {/* dev kart */}
-        <div className="relative flex flex-1 flex-col items-center justify-center px-8 text-center">
-          {/* gökkuşağı sihir girdabı — Piko konuşurken döner */}
-          <div
-            aria-hidden
-            style={{
-              position: "absolute",
-              top: "14%",
-              width: 240,
-              height: 240,
-              borderRadius: "50%",
-              background:
-                "conic-gradient(#E0463A,#E8963C,#EBD24A,#3FA96A,#2E86C1,#7E57C2,#E0463A)",
-              filter: "blur(30px)",
-              opacity: speaking ? 0.5 : 0.28,
-              animation: "pikoSwirl 9s linear infinite",
-              transition: "opacity .4s",
-            }}
-          />
-          <div key={i} style={{ animation: "puKenBurns 6s ease-out both", zIndex: 1 }}>
-            <PikoMascot talking={speaking} size={168} />
-          </div>
-          <p className="relative z-[1] mt-4 max-w-2xl font-display text-[clamp(24px,4.5vw,40px)] font-bold leading-[1.25] tracking-tightest text-[#15211F]">
-            <Karaoke text={seg} upTo={spoken} />
-          </p>
-          <button
-            type="button"
-            onClick={() => speak(seg)}
-            className="mt-6 flex items-center gap-2 rounded-full bg-white/70 px-5 py-2.5 text-[15px] font-semibold text-forest"
-          >
-            🔊 Tekrar dinle
-          </button>
-        </div>
-
-        {/* alt gezinme — büyük dokunma hedefleri */}
-        <div className="flex items-center justify-between gap-4 px-6 pb-8">
-          <button
-            type="button"
-            onClick={prev}
-            disabled={i === 0}
-            className="grid h-16 w-16 place-items-center rounded-full bg-white/70 text-[26px] text-forest disabled:opacity-30"
-            aria-label="Geri"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            onClick={next}
-            className="flex h-16 flex-1 items-center justify-center gap-2 rounded-full bg-forest text-[20px] font-bold text-paper"
-          >
-            {atEnd ? "Bitir 🎉" : "Devam →"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ---- ORTAOKUL+: YAPILANDIRILMIŞ ANLATIM ----
+  // ---------- SAHNE (katmanlı video karesi) ----------
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-paper dark:bg-[#0C1614]">
-      <div className="flex items-center justify-between border-b border-line px-6 py-4 dark:border-[#21342F]">
+    <div
+      className="fixed inset-0 z-50 flex flex-col"
+      style={{ background: SCENE_BG[scene?.bg ?? 0], transition: "background .6s" }}
+    >
+      {/* üst kontrol çubuğu */}
+      <div className="flex items-center justify-between px-5 py-3">
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-1.5 text-[13px] font-medium text-muted hover:text-forest"
+          aria-label="Kapat"
+          className="grid h-10 w-10 place-items-center rounded-full bg-white/70 text-[18px] text-forest"
         >
-          <span>←</span> Kapat
+          ←
         </button>
-        <span className="truncate px-4 font-display text-[15px] font-bold tracking-tightest text-forest dark:text-[#34D0B6]">
-          {title}
-        </span>
+        <div className="flex items-center gap-1" aria-hidden>
+          {scenes.map((_, idx) => (
+            <span
+              key={idx}
+              className="h-2 rounded-full transition-all"
+              style={{
+                width: idx === i ? 20 : 8,
+                background: idx <= i ? "#0F3D3A" : "rgba(15,61,58,0.2)",
+              }}
+            />
+          ))}
+        </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleAuto}
-            aria-label={auto ? "Duraklat" : "Otomatik oynat"}
-            className="flex items-center gap-1.5 rounded-xl bg-forest px-3 py-2 text-[13px] font-bold text-paper dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
-          >
-            {auto ? "⏸ Duraklat" : "▶ Sinema"}
+          <button type="button" onClick={() => setMusic((m) => !m)} aria-label="Müzik" className="grid h-10 w-10 place-items-center rounded-full bg-white/70 text-[16px]">
+            {music ? "🎵" : "🎶"}
           </button>
-          <button
-            type="button"
-            onClick={toggleMute}
-            aria-label={muted ? "Sesi aç" : "Sesi kapat"}
-            className="grid h-10 w-10 place-items-center rounded-xl border border-line text-forest dark:border-[#21342F] dark:text-[#34D0B6]"
-          >
+          <button type="button" onClick={toggleMute} aria-label="Ses" className="grid h-10 w-10 place-items-center rounded-full bg-white/70 text-[16px]">
             {muted ? "🔇" : speaking ? "🔊" : "🔈"}
           </button>
         </div>
       </div>
 
-      {/* ilerleme */}
-      <div className="h-1 bg-line dark:bg-[#21342F]">
+      {/* SAHNE ALANI */}
+      <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-8 text-center">
+        {/* gökkuşağı sihir girdabı */}
         <div
-          className="h-full bg-gradient-to-r from-forest to-hope transition-all"
-          style={{ width: `${pct}%` }}
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: "10%",
+            width: 320,
+            height: 320,
+            borderRadius: "50%",
+            background: "conic-gradient(#E0463A,#E8963C,#EBD24A,#3FA96A,#2E86C1,#7E57C2,#E0463A)",
+            filter: "blur(46px)",
+            opacity: speaking ? 0.45 : 0.24,
+            animation: "pikoSwirl 9s linear infinite",
+            transition: "opacity .4s",
+          }}
         />
-      </div>
 
-      <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-10">
-        <div className="max-w-2xl">
-          <span className="font-mono text-[11px] uppercase tracking-brand text-tea">
-            Bölüm {i + 1} / {segments.length}
-          </span>
-          <p className="mt-4 text-[clamp(18px,2.4vw,24px)] leading-[1.6] text-ink dark:text-[#EAF1EF]">
-            <Karaoke text={seg} upTo={spoken} />
-          </p>
-          <button
-            type="button"
-            onClick={() => speak(seg)}
-            className="mt-5 flex items-center gap-2 rounded-xl border border-line px-4 py-2 text-[13px] font-semibold text-forest hover:bg-[#EFF4F2] dark:border-[#21342F] dark:text-[#34D0B6] dark:hover:bg-[#142824]"
-          >
-            🔊 Bu bölümü dinle
-          </button>
+        {/* sahne nesnesi (hareketli, konuya özel) */}
+        <div key={`obj-${i}`} className="relative z-[1]" style={{ animation: "puKenBurns 6s ease-out both" }}>
+          <SceneObject name={scene?.object ?? "star"} size={young ? 150 : 120} />
         </div>
+
+        {/* Piko + altyazı */}
+        <div className="relative z-[1] mt-2 flex items-end gap-3">
+          <PikoMascot talking={speaking} size={young ? 110 : 92} />
+        </div>
+        <p
+          className={`relative z-[1] mt-4 max-w-2xl font-display font-bold leading-[1.25] tracking-tightest text-[#15211F] ${
+            young ? "text-[clamp(22px,4vw,38px)]" : "text-[clamp(18px,2.6vw,28px)]"
+          }`}
+        >
+          <Karaoke text={seg} upTo={spoken} />
+        </p>
       </div>
 
-      <div className="flex items-center justify-between gap-4 border-t border-line px-6 py-4 dark:border-[#21342F]">
+      {/* alt kontrol çubuğu */}
+      <div className="flex items-center justify-between gap-3 px-6 pb-7">
         <button
           type="button"
-          onClick={prev}
+          onClick={() => go(-1)}
           disabled={i === 0}
-          className="rounded-xl border border-line px-5 py-2.5 text-[14px] font-semibold text-muted disabled:opacity-30 dark:border-[#21342F]"
+          className="grid h-14 w-14 place-items-center rounded-full bg-white/70 text-[22px] text-forest disabled:opacity-30"
+          aria-label="Geri"
         >
-          ← Önceki
+          ←
         </button>
         <button
           type="button"
-          onClick={next}
-          className="rounded-xl bg-forest px-6 py-2.5 text-[14px] font-bold text-paper dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
+          onClick={togglePlay}
+          className="flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-forest text-[18px] font-bold text-paper"
         >
-          {atEnd ? "Bitir 🎉" : "Sonraki →"}
+          {playing ? "⏸ Duraklat" : "▶ Oynat"}
+        </button>
+        <button
+          type="button"
+          onClick={recordVideo}
+          disabled={recording}
+          className="flex h-14 items-center gap-2 rounded-full bg-hope px-5 text-[15px] font-bold text-hope-ink disabled:opacity-50"
+          title="Videoyu kaydet ve paylaş (.webm)"
+        >
+          {recording ? "● Kaydediliyor" : "🎬 Video"}
+        </button>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          className="grid h-14 w-14 place-items-center rounded-full bg-white/70 text-[22px] text-forest"
+          aria-label="İleri"
+        >
+          →
         </button>
       </div>
     </div>
   );
 }
 
-/** Karaoke — seslendirilen kelimeye kadar olan kısmı vurgular (sesle senkron). */
+/** Karaoke — seslendirilen kelimeye kadar vurgular (sesle senkron). */
 function Karaoke({ text, upTo }: { text: string; upTo: number }) {
   if (upTo <= 0 || upTo >= text.length) return <>{text}</>;
   return (

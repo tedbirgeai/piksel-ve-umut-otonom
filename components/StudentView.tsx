@@ -234,6 +234,7 @@ function Reader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
       <LessonPlayer
         title={lesson.title}
         body={body || lesson.title}
+        subject={lesson.subject}
         young={young}
         onClose={() => setPlaying(false)}
         onComplete={() => {
