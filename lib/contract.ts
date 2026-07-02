@@ -10,10 +10,19 @@ import type { Abi } from "viem";
  *   NEXT_PUBLIC_CERTIFICATE_CONTRACT=0x...
  * (Geriye dönük uyum: NEXT_PUBLIC_ROYALTY_CONTRACT da okunur.)
  */
-export const CERTIFICATE_CONTRACT_ADDRESS = (process.env
-  .NEXT_PUBLIC_CERTIFICATE_CONTRACT ??
-  process.env.NEXT_PUBLIC_ROYALTY_CONTRACT ??
-  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+const ZERO = "0x0000000000000000000000000000000000000000";
+
+/** Geçerli bir EVM adresi mi? (0x + 40 hex). Değilse sıfır adrese normalize et. */
+function normalizeAddress(v?: string): `0x${string}` {
+  const s = (v ?? "").trim();
+  return /^0x[a-fA-F0-9]{40}$/.test(s) ? (s as `0x${string}`) : (ZERO as `0x${string}`);
+}
+
+// .env'de "0", boş, ya da yarım adres yazılsa bile GEÇERSİZ sayılır → demo modu.
+export const CERTIFICATE_CONTRACT_ADDRESS = normalizeAddress(
+  process.env.NEXT_PUBLIC_CERTIFICATE_CONTRACT ??
+    process.env.NEXT_PUBLIC_ROYALTY_CONTRACT,
+);
 
 /** Geriye dönük ad — eski importlar çalışsın diye. */
 export const ROYALTY_CONTRACT_ADDRESS = CERTIFICATE_CONTRACT_ADDRESS;
@@ -226,7 +235,5 @@ export const certificateAbi = [
 /** Geriye dönük ad. */
 export const royaltyAbi = certificateAbi;
 
-/** Sözleşme tanımlı mı? (sıfır adres = demo modu) */
-export const isContractConfigured =
-  CERTIFICATE_CONTRACT_ADDRESS !==
-  "0x0000000000000000000000000000000000000000";
+/** Sözleşme tanımlı mı? (geçersiz/sıfır adres = demo modu) */
+export const isContractConfigured = CERTIFICATE_CONTRACT_ADDRESS !== ZERO;
