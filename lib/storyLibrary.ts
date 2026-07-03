@@ -17,11 +17,13 @@ import { SCENE_BG } from "./sceneDirector";
 export interface StoryBeat {
   text: string;
   object: string;
+  note?: string; // yönetmen notu — profesyonel prodüksiyon (Seviye 3) için sahne yönergesi
 }
 export interface StoryEpisode {
   id: string;
   title: string;
   stage: string;
+  level?: string; // ya\u015f/s\u0131n\u0131f aral\u0131\u011f\u0131 \u2014 kademe i\u00e7inde daha ince yerle\u015ftirme
   theme: string;
   badge: string;
   beats: StoryBeat[];
@@ -35,6 +37,19 @@ interface StoryFile {
 const DATA = storyData as unknown as StoryFile;
 
 export const STORY_EPISODES: StoryEpisode[] = DATA.episodes;
+
+/** Bölümleri kademeye göre grupla (öğretmen panelinde net yerleştirme için). */
+export function groupByStage(
+  episodes: StoryEpisode[],
+): { stage: string; episodes: StoryEpisode[] }[] {
+  const map = new Map<string, StoryEpisode[]>();
+  for (const ep of episodes) {
+    const arr = map.get(ep.stage) ?? [];
+    arr.push(ep);
+    map.set(ep.stage, arr);
+  }
+  return Array.from(map.entries()).map(([stage, episodes]) => ({ stage, episodes }));
+}
 
 export function getStory(id: string): StoryEpisode | undefined {
   return STORY_EPISODES.find((e) => e.id === id);

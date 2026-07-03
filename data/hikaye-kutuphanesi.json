@@ -1,75 +1,85 @@
 {
-  "version": "2026.07-piksel-hikayeleri-v1",
-  "_aciklama": "PİKSEL HİKAYELERİ — el yazımı, kalite kontrollü 5 bölümlük başlangıç serisi. Ders üretiminden (YZ, anlık) AYRI bir kategoridir: öğretmen bunları seçer ve 'Yayınla' der; öğrenci canlı sahneli/sesli/müzikli 'çizgi film' olarak izler. Ödül token DEĞİL, rozet/yıldızdır (mimari kararımıza uygun, cüzdansız).",
+  "version": "2026.07-piksel-hikayeleri-v2",
+  "_aciklama": "PİKSEL HİKAYELERİ — el yazımı, kalite kontrollü, kademeye göre net yerleştirilmiş seri. Her bölümde: stage (kademe), level (yaş/sınıf aralığı), theme (kazanım), badge (rozet ödülü), beats (sahne sahne diyalog + görsel nesne + yönetmen notu). Öğretmen paneli bölümleri kademeye göre gruplar; öğrenci sadece kendi kademesine yayınlanmış bölümleri görür.",
   "episodes": [
     {
       "id": "piksel-01",
       "title": "Tanışma ve İlk Küp",
       "stage": "Kreş",
+      "level": "3-4 Yaş",
       "theme": "Geometrik şekilleri tanıma",
       "badge": "İlk Tanışma",
       "beats": [
-        { "text": "Merhaba! Ben Piksel. Bugün seninle çok güzel bir oyun oynayacağız.", "object": "star" },
-        { "text": "Bak, elimde küçük bir küp var. Küpün her yanı düz ve köşeli.", "object": "shapes" },
-        { "text": "Küpü çevirdikçe hep aynı şekli görürsün. Hadi sen de evindeki küp gibi eşyaları bul.", "object": "shapes" },
-        { "text": "Bir zar, bir kutu... hepsi küpe benzer değil mi?", "object": "shapes" },
-        { "text": "Peki evinde küpe benzeyen bir şey bulabilir misin? Etrafına bak bakalım!", "object": "star" }
+        { "text": "Merhaba minik dost! Ben Piksel — ışıktan ve renkten yapılmışım. Seninle tanıştığıma çok sevindim!", "object": "star", "note": "Piksel kollarını açarak selam verir, gözleri parlar." },
+        { "text": "Bak bak bak... elimde ne var? Küçük, köşeli, sağlam bir küp!", "object": "shapes", "note": "Piksel küpü havaya kaldırıp döndürür, ışık yansır." },
+        { "text": "Küpü çevirdikçe hep aynı şekli görürsün — altı düz yüzü var, tıpkı bir zar gibi!", "object": "shapes", "note": "Küp yavaşça 360 derece döner, her yüzü parlar." },
+        { "text": "Hişt! Bir sır vereyim mi? Evinde de küpler saklanıyor olabilir — bir kutu, bir zar, hatta bazı oyuncaklar!", "object": "shapes", "note": "Piksel parmağını dudağına götürüp göz kırpar." },
+        { "text": "Hadi küçük kâşif, gözlerini aç ve evinde bir küp bul! Bulunca bana anlat, tamam mı?", "object": "star", "note": "Piksel heyecanla zıplar, gökkuşağı parlar." },
+        { "text": "Harikasın! Bugün ilk büyük keşfini yaptın. Piksel seninle gurur duyuyor!", "object": "heart", "note": "Kutlama — konfeti efekti, Piksel el sallar." }
       ]
     },
     {
       "id": "piksel-02",
       "title": "Şekiller Ülkesi",
       "stage": "Kreş",
+      "level": "3-4 Yaş",
       "theme": "Temel geometrik şekiller",
       "badge": "Şekil Kaşifi",
       "beats": [
-        { "text": "Şimdi seni büyülü bir yere götürüyorum: Şekiller Ülkesi!", "object": "star" },
-        { "text": "Burada yuvarlak bir daire yaşar. Hiç köşesi yoktur, top gibi yuvarlanır.", "object": "shapes" },
-        { "text": "Şurada da üç köşeli bir üçgen var. Bir dağın tepesi gibi sivridir.", "object": "shapes" },
-        { "text": "Ve dört köşeli kare, tıpkı bir pencere gibi eşit kenarlıdır.", "object": "shapes" },
-        { "text": "Haydi şimdi etrafında bir daire, bir üçgen ve bir kare bulmaya çalış!", "object": "shapes" }
+        { "text": "Gözlerini kapat ve elimi tut... Şimdi aç! Hoş geldin, burası Şekiller Ülkesi!", "object": "star", "note": "Ekran parlak bir ışıkla açılır, Piksel kolunu uzatır." },
+        { "text": "Bak, şurada yusyuvarlak bir Daire yaşıyor. Hiç köşesi yok, tıpkı bir top gibi her yöne yuvarlanır!", "object": "shapes", "note": "Daire zıplayarak sahneye girer." },
+        { "text": "Şurada da sivri uçlu Üçgen duruyor — tam bir dağın tepesi gibi, üç köşesi var!", "object": "shapes", "note": "Üçgen döne döne belirir." },
+        { "text": "Ve işte eşit kenarlı Kare — bir pencere gibi dört köşesi tastamam birbirine eşit!", "object": "shapes", "note": "Kare hafifçe titreşerek durur." },
+        { "text": "Şimdi sıra sende! Etrafına bak: bir daire, bir üçgen, bir kare bulabilir misin?", "object": "shapes", "note": "Piksel merakla öne eğilir, kulak kabartır." },
+        { "text": "Yaşasın! Artık sen de Şekiller Ülkesi'nin gerçek bir kâşifisin!", "object": "star", "note": "Kutlama sahnesi, yıldızlar yağar." }
       ]
     },
     {
       "id": "piksel-03",
       "title": "Renklerin Senfonisi",
       "stage": "Kreş",
+      "level": "3-4 Yaş",
       "theme": "Renkleri tanıma ve karıştırma",
       "badge": "Renk Ustası",
       "beats": [
-        { "text": "Bugün benimle birlikte renklerin dünyasına yolculuk yapacaksın.", "object": "palette" },
-        { "text": "Kırmızı, sıcacık bir renktir — güneşin batışı gibi.", "object": "palette" },
-        { "text": "Mavi, gökyüzü ve deniz gibi ferahlatıcıdır.", "object": "palette" },
-        { "text": "Sarıyı kırmızıyla karıştırırsak ne olur dersin? Turuncu ortaya çıkar!", "object": "palette" },
-        { "text": "Şimdi sen de evindeki eşyaların renklerini say bakalım.", "object": "palette" }
+        { "text": "Şşşt... dinle! Renklerin de kendi müziği var. Bugün seninle o müziği keşfedeceğiz!", "object": "palette", "note": "Piksel elini kulağına götürür, notalar süzülür." },
+        { "text": "Kırmızı — sıcacık ve enerjik, tıpkı gün batımı gibi parlıyor!", "object": "palette", "note": "Kırmızı bir dalga ekranı sarar." },
+        { "text": "Mavi — derin bir nefes gibi ferahlatıcı, gökyüzü ve deniz onunla boyanmış!", "object": "palette", "note": "Mavi dalga yumuşakça yayılır." },
+        { "text": "Peki ya kırmızıyla sarıyı bir araya getirirsek? Bir, iki, üç... İşte turuncu ortaya çıktı!", "object": "palette", "note": "İki renk birleşip yeni bir renk patlaması yaratır." },
+        { "text": "Şimdi sen dene: evindeki eşyaların hangi renkte olduğunu sayabilir misin?", "object": "palette", "note": "Piksel parmaklarını sayar gibi hareket ettirir." },
+        { "text": "Muhteşemsin! Artık dünyayı bir ressam gözüyle görüyorsun.", "object": "heart", "note": "Gökkuşağı patlaması, kutlama." }
       ]
     },
     {
       "id": "piksel-04",
       "title": "Nezaket Kelimeleri",
       "stage": "Kreş",
+      "level": "4-5 Yaş",
       "theme": "Nezaket ve görgü kuralları",
       "badge": "Nazik Kalp",
       "beats": [
-        { "text": "Bugün seninle çok özel kelimeler öğreneceğiz — büyülü kelimeler!", "object": "heart" },
-        { "text": "Birinden bir şey istediğinde 'Lütfen' dersen, sözün daha da güzel olur.", "object": "heart" },
-        { "text": "Biri sana yardım ettiğinde 'Teşekkür ederim' demeyi unutma.", "object": "heart" },
-        { "text": "Yanlışlıkla birine çarparsan 'Özür dilerim' demek de çok kıymetlidir.", "object": "heart" },
-        { "text": "Haydi şimdi bu üç büyülü kelimeyi birlikte tekrar edelim!", "object": "heart" }
+        { "text": "Bugün sana çok özel, adeta büyülü üç kelime öğreteceğim. Hazır mısın?", "object": "heart", "note": "Piksel elini kalbine götürür, ışıldar." },
+        { "text": "Birinden bir şey istediğinde... 'Lütfen' de. Bak, sözün nasıl da yumuşayıp güzelleşti!", "object": "heart", "note": "Kelime havada parıldayarak belirir." },
+        { "text": "Biri sana yardım ettiğinde... 'Teşekkür ederim' demeyi asla unutma. Bu, kalpleri ısıtan bir kelime!", "object": "heart", "note": "Küçük kalp simgeleri havalanır." },
+        { "text": "Ve yanlışlıkla birine çarparsan... 'Özür dilerim' de. Bu kelime, dostlukları onarır.", "object": "heart", "note": "Piksel özür diler gibi hafifçe eğilir." },
+        { "text": "Haydi şimdi hep birlikte tekrar edelim: Lütfen... Teşekkür ederim... Özür dilerim!", "object": "star", "note": "Üç kelime sırayla parlar." },
+        { "text": "Sen artık nazik bir kalp taşıyorsun! Bu üç kelimeyi her gün kullanmayı unutma.", "object": "heart", "note": "Kutlama, Piksel gülümser." }
       ]
     },
     {
       "id": "piksel-05",
       "title": "Sabırlı Küçük Filiz",
       "stage": "Kreş",
+      "level": "4-5 Yaş",
       "theme": "Sabır ve doğa sevgisi",
       "badge": "Sabır Tohumu",
       "beats": [
-        { "text": "Bir küçük tohum vardı. Toprağın içinde uykuya dalmıştı.", "object": "flask" },
-        { "text": "Her gün ona biraz su verdik ve güneşin ona dokunmasını sağladık.", "object": "flask" },
-        { "text": "Tohum hemen filiz olmadı — beklemek gerekti, sabırla beklemek.", "object": "heart" },
-        { "text": "Günler geçti, ve bir sabah küçük yeşil bir filiz topraktan başını uzattı!", "object": "flask" },
-        { "text": "Demek ki bazı güzel şeyler için sabırla beklemek gerekiyor. Sen neyi sabırla bekliyorsun?", "object": "heart" }
+        { "text": "Bir varmış bir yokmuş... Toprağın altında minicik bir tohum uyuyormuş.", "object": "flask", "note": "Toprak kesiti görünür, tohum belirir." },
+        { "text": "Her sabah ona nazikçe su verdik. Güneş de dokunup ısıttı onu.", "object": "flask", "note": "Su damlaları ve güneş ışını sahneye girer." },
+        { "text": "Ama tohum hemen filiz olmadı. Bazen beklemek gerekir — sabırla, umutla beklemek.", "object": "heart", "note": "Piksel sakin bir ifadeyle bekler, zaman akışı hissi." },
+        { "text": "Bir gün, iki gün, üç gün geçti... Ve bir sabah, toprağın içinden minik yeşil bir filiz baş uzattı!", "object": "flask", "note": "Filiz yavaşça büyüyerek belirir, ışık parlar." },
+        { "text": "Demek ki en güzel şeyler bazen sabırla beklemekle geliyor. Peki sen neyi sabırla bekliyorsun?", "object": "heart", "note": "Piksel merakla sorar, düşünme pozu." },
+        { "text": "Sen de tıpkı bu filiz gibi büyüyorsun — sabırla, günden güne. Piksel seninle çok gurur duyuyor!", "object": "star", "note": "Kutlama, filiz çiçeğe dönüşür." }
       ]
     }
   ]

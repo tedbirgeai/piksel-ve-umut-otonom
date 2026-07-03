@@ -15,7 +15,7 @@ import { useLibrary } from "./LibraryProvider";
 import { useTheme } from "./ThemeProvider";
 import { useRole } from "./RoleProvider";
 import ReputationPanel from "./ReputationPanel";
-import { STORY_EPISODES, isStoryPublished, toggleStoryPublish } from "@/lib/storyLibrary";
+import { STORY_EPISODES, isStoryPublished, toggleStoryPublish, groupByStage } from "@/lib/storyLibrary";
 
 /**
  * Otonom Kontrol Merkezi:
@@ -171,34 +171,48 @@ export default function Sidebar({
           El yazımı, kalite kontrollü bölümler. Yayınladığın bölüm öğrencinin
           kütüphanesinde canlı çizgi film olarak oynar.
         </p>
-        <div className="flex flex-col gap-1.5">
-          {STORY_EPISODES.map((ep) => {
-            const on = isStoryPublished(ep.id);
-            return (
-              <div
-                key={ep.id}
-                className="flex items-center justify-between gap-2 rounded-lg border border-line bg-white px-2.5 py-2 dark:border-[#21342F] dark:bg-[#142824]"
-              >
-                <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink dark:text-[#EAF1EF]">
-                  {ep.title}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    toggleStoryPublish(ep.id);
-                    forceTick((n) => n + 1);
-                  }}
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-[10.5px] font-semibold transition-colors ${
-                    on
-                      ? "bg-forest text-paper dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
-                      : "bg-sand text-tea dark:bg-[#0C1614]"
-                  }`}
-                >
-                  {on ? "● Yayında" : "Yayınla"}
-                </button>
+        <div className="flex flex-col gap-3">
+          {groupByStage(STORY_EPISODES).map((group) => (
+            <div key={group.stage}>
+              <div className="mb-1 px-1 text-[10px] font-bold uppercase tracking-wide text-hope-ink">
+                {group.stage}
               </div>
-            );
-          })}
+              <div className="flex flex-col gap-1.5">
+                {group.episodes.map((ep) => {
+                  const on = isStoryPublished(ep.id);
+                  return (
+                    <div
+                      key={ep.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-line bg-white px-2.5 py-2 dark:border-[#21342F] dark:bg-[#142824]"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[12.5px] text-ink dark:text-[#EAF1EF]">
+                          {ep.title}
+                        </span>
+                        {ep.level && (
+                          <span className="block truncate text-[10px] text-muted">{ep.level}</span>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          toggleStoryPublish(ep.id);
+                          forceTick((n) => n + 1);
+                        }}
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[10.5px] font-semibold transition-colors ${
+                          on
+                            ? "bg-forest text-paper dark:bg-[#1C4A44] dark:text-[#EAF6F3]"
+                            : "bg-sand text-tea dark:bg-[#0C1614]"
+                        }`}
+                      >
+                        {on ? "● Yayında" : "Yayınla"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
